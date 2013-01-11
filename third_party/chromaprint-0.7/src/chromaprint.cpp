@@ -28,8 +28,6 @@
 #include "fingerprinter_configuration.h"
 #include "base64.h"
 
-#include <iostream>
-
 using namespace std;
 using namespace Chromaprint;
 
@@ -72,7 +70,6 @@ void chromaprint_free(ChromaprintContext *c)
 
 int chromaprint_set_option(ChromaprintContext *c, const char *name, int value)
 {
-  cerr << "set_option: " << name << " = " << value << endl;
 	ChromaprintContextPrivate *ctx = (ChromaprintContextPrivate *)c;
 	return ctx->fingerprinter->SetOption(name, value) ? 1 : 0;
 }

@@ -33,8 +33,6 @@
 #include "utils.h"
 #include "debug.h"
 
-#include <iostream>
-
 using namespace std;
 using namespace Chromaprint;
 
@@ -88,7 +86,6 @@ Fingerprinter::~Fingerprinter()
 
 bool Fingerprinter::SetOption(const char *name, int value)
 {
-  cerr << "SetOption: " << name << " = " << value << endl;
 	if (!strcmp(name, "silence_threshold")) {
 		if (m_silence_remover) {
 			m_silence_remover->set_threshold(value);
