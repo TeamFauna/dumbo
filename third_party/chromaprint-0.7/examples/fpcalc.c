@@ -237,7 +237,11 @@ int fpcalc_main(int argc, char **argv)
 			}
 		}
 		else if (!strcmp(arg, "-set") && i + 1 < argc) {
-			i += 1;
+      char *name = argv[++i];
+      char *value = strchr(name, '=');
+      if (!value && i + 1 < argc) {
+        ++i;
+      }
 		}
 		else {
 			file_names[num_file_names++] = argv[i];
@@ -269,7 +273,10 @@ int fpcalc_main(int argc, char **argv)
 			if (value) {
 				*value++ = '\0';
 				chromaprint_set_option(chromaprint_ctx, name, atoi(value));
-			}
+			} else if (i + 1 < argc) {
+        value = argv[++i];
+        chromaprint_set_option(chromaprint_ctx, name, atoi(value));
+      }
 		}
 	}
 
