@@ -142,7 +142,7 @@ function addTrack(artistID, fp, callback) {
     length = parseInt(length, 10);
   
   // Sanity checks
-  if (!artistID || artistID.length !== 16 || isNaN(length))
+  if (!artistID || isNaN(length))
     return callback('Attempted to add track with missing fields', null);
   
   var sql = 'INSERT INTO tracks ' +
@@ -157,18 +157,28 @@ function addTrack(artistID, fp, callback) {
     var trackID = info.insertId;
     
     // Write out the codes to a file for bulk insertion into MySQL
-    var tempName = temp.path({ prefix: 'echoprint-' + trackID, suffix: '.csv' });
+    //var tempName = temp.path({ prefix: 'echoprint-' + trackID, suffix: '.csv' });
+    
+    // Hack for cygwin on Russell's computer.  Will make better later... maybe.
+    //if (tempName.indexOf('C:\\cygwin') == 0) {
+      //filename.replace('\\', '/');
+      //filename = filename.slice(2);
+      var tempName = '/cygwin/tmp/testing.csv';
+    //}
+
+    console.log('Writing to file');
     writeCodesToFile(tempName, fp, trackID, function(err) {
       if (err) return callback(err, null);
       
+      console.log('Running SQL query');
       // Bulk insert the codes
       sql = 'LOAD DATA INFILE ? IGNORE INTO TABLE codes';
-      client.query(sql, [tempName], function(err, info) {
+      client.query(sql, ['/tmp/testing.csv'], function(err, info) {
         // Remove the temporary file
-        fs.unlink(tempName, function(err2) {
-          if (!err) err = err2;
+        //fs.unlink('C:' + tempName, function(err2) {
+        //  if (!err) err = err2;
           callback(err, trackID);
-        });
+        //});
       });
     });
   });
@@ -185,7 +195,7 @@ function writeCodesToFile(filename, fp, trackID, callback) {
     if (i === fp.codes.length)
       file.end();
   };
-  
+
   var file = fs.createWriteStream(filename);
   file.on('drain', keepWriting);
   file.on('error', callback);

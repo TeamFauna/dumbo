@@ -249,6 +249,7 @@ function getActualScore(fp, match, threshold, slop) {
     return 0;
   
   var timeDiffs = {};
+  var offsetHistogram = {};
   var i, j;
   
   var matchCodesToTimes = getCodesToTimes(match, slop);
@@ -263,11 +264,18 @@ function getActualScore(fp, match, threshold, slop) {
     var matchTimes = matchCodesToTimes[code];
     if (matchTimes) {
       for (j = 0; j < matchTimes.length; j++) {
-        var dist = Math.abs(time - matchTimes[j]);
+        var dist = (time - matchTimes[j]);
+
+        if (offsetHistogram[dist] === undefined) {
+          offsetHistogram[dist] = 0;
+        }
+        offsetHistogram[dist]++;
+
+        dist = Math.abs(dist);
+
         if (dist < minDist)
           minDist = dist;
       }
-    
       if (minDist < MAX_DIST) {
         // Increment the histogram bucket for this distance
         if (timeDiffs[minDist] === undefined)
@@ -278,6 +286,24 @@ function getActualScore(fp, match, threshold, slop) {
   }
 
   match.histogram = timeDiffs;
+
+  // Calculate the most likely offset of the query from the match.
+  offsets = [];
+  for (var i in offsetHistogram) {
+    if (!offsetHistogram.hasOwnProperty(i)) {
+      continue;
+    }
+    offsets.push({
+      offset: i,
+      amount: offsetHistogram[i]
+    });
+  }
+
+  if (offsets.length > 0) {
+    offsets.sort(function(a, b) { return b.amount - a.amount; });
+    console.log(offsets);
+    match.offset = offsets[0];
+  }
   
   // Convert the histogram into an array, sort it, and sum the top two
   // frequencies to compute the adjusted score
@@ -287,6 +313,7 @@ function getActualScore(fp, match, threshold, slop) {
     array[i] = [ keys[i], timeDiffs[keys[i]] ];
   array.sort(function(a, b) { return b[1] - a[1]; });
   
+
   if (array.length > 1)
     return array[0][1] + array[1][1];
   else if (array.length === 1)
@@ -403,10 +430,13 @@ function ingest(fp, callback) {
           database.getArtistByName(fp.artist, function(err, artist) {
             if (err) { gMutex.release(); return callback(err, null); }
             
-            if (!artist)
+            if (!artist) {
               createArtistAndTrack();
-            else
+            } else {
+              console.log(artist);
+              log.info('Found artist ' + artist.artist_id + ' ("' + artist.name + '")');
               createTrack(artist.artist_id, artist.name);
+            }
           });
         } else {
           createArtistAndTrack();
