@@ -253,7 +253,7 @@ function getActualScore(fp, match, threshold, slop) {
   var i, j;
   
   var matchCodesToTimes = getCodesToTimes(match, slop);
-  
+
   // Iterate over each {code,time} tuple in the query
   for (i = 0; i < fp.codes.length; i++) {
     var code = fp.codes[i];
@@ -264,17 +264,16 @@ function getActualScore(fp, match, threshold, slop) {
     var matchTimes = matchCodesToTimes[code];
     if (matchTimes) {
       for (j = 0; j < matchTimes.length; j++) {
-        var dist = (time - matchTimes[j]);
+        var dist = matchTimes[j] - time;
+        dist *= slop;
 
         if (offsetHistogram[dist] === undefined) {
           offsetHistogram[dist] = 0;
         }
         offsetHistogram[dist]++;
 
-        dist = Math.abs(dist);
-
-        if (dist < minDist)
-          minDist = dist;
+        if (Math.abs(dist) < minDist)
+          minDist = Math.abs(dist);
       }
       if (minDist < MAX_DIST) {
         // Increment the histogram bucket for this distance

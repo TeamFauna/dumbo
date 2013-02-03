@@ -131,18 +131,19 @@ function getContributors(fp, match) {
     var matchTimes = matchCodesToTimes[code];
     if (matchTimes) {
       for (j = 0; j < matchTimes.length; j++) {
-        var dist = Math.abs(time - matchTimes[j]);
+        var dist = Math.abs(matchTimes[j] - time);
         if (dist < minDist)
           minDist = dist;
       }
       
+      minDist *= 2;
       if (minDist < MAX_DIST) {
         // If minDist is in topOffsets, add a contributor object
         for (j = 0; j < topOffsets.length; j++) {
           if (minDist === parseInt(topOffsets[j][0], 10)) {
             match.contributors.push({
               code: code,
-              time: time,
+              time: time * fingerprinter.MATCH_SLOP,
               dist: minDist
             });
             break;

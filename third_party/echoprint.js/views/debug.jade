@@ -96,6 +96,7 @@ html(lang="en")
         var canvas = document.getElementsByName(match.track_id + '-lines')[0];
         var ctx = canvas.getContext('2d');
         
+        /*
         // Find the most frequently occurring time offset in the histogram
         var topOffset = 0;
         var topOffsetCount = 0;
@@ -107,11 +108,13 @@ html(lang="en")
             }
           }
         }
+        */
         
+        var offset = parseInt(match.offset.offset, 10);
         for (var i = 0; i < match.contributors.length; i++) {
           var contrib = match.contributors[i];
-          var color = (contrib.dist == topOffset) ? 'blue' : 'red';
-          drawCodeMatch(ctx, canvas, contrib.time, match.codeLength, color);
+          var color = (contrib.dist == offset) ? 'blue' : 'red';
+          drawCodeMatch(ctx, canvas, contrib.time + offset, match.codeLength, color);
         }
         
         ctx.save();
