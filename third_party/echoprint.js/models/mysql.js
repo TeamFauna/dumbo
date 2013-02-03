@@ -157,13 +157,13 @@ function addTrack(artistID, fp, callback) {
     var trackID = info.insertId;
     
     // Write out the codes to a file for bulk insertion into MySQL
-    //var tempName = temp.path({ prefix: 'echoprint-' + trackID, suffix: '.csv' });
+    var tempName = temp.path({ prefix: 'echoprint-' + trackID, suffix: '.csv' });
     
     // Hack for cygwin on Russell's computer.  Will make better later... maybe.
     //if (tempName.indexOf('C:\\cygwin') == 0) {
       //filename.replace('\\', '/');
       //filename = filename.slice(2);
-      var tempName = '/cygwin/tmp/testing.csv';
+      //var tempName = '/cygwin/tmp/testing.csv';
     //}
 
     console.log('Writing to file');
@@ -173,12 +173,12 @@ function addTrack(artistID, fp, callback) {
       console.log('Running SQL query');
       // Bulk insert the codes
       sql = 'LOAD DATA INFILE ? IGNORE INTO TABLE codes';
-      client.query(sql, ['/tmp/testing.csv'], function(err, info) {
+      client.query(sql, [tempName], function(err, info) {
         // Remove the temporary file
-        //fs.unlink('C:' + tempName, function(err2) {
-        //  if (!err) err = err2;
+        fs.unlink(tempName, function(err2) {
+          if (!err) err = err2;
           callback(err, trackID);
-        //});
+        });
       });
     });
   });
