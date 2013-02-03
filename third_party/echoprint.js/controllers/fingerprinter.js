@@ -212,7 +212,9 @@ function getTrackMetadata(match, allMatches, status, callback) {
     match.artist_id = track.artist_id;
     match.length = track.length;
     match.import_date = track.import_date;
-    
+ 
+    match.offset.time = match.offset.offset / SECONDS_TO_TIMESTAMP;
+
     callback(null, { success: true, status: status, match: match },
       allMatches);
   });
@@ -292,15 +294,15 @@ function getActualScore(fp, match, threshold, slop) {
     if (!offsetHistogram.hasOwnProperty(i)) {
       continue;
     }
+
     offsets.push({
-      offset: i,
+      offset: parseInt(i, 10),
       amount: offsetHistogram[i]
     });
   }
 
   if (offsets.length > 0) {
     offsets.sort(function(a, b) { return b.amount - a.amount; });
-    console.log(offsets);
     match.offset = offsets[0];
   }
   
