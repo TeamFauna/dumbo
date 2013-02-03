@@ -213,7 +213,7 @@ function getTrackMetadata(match, allMatches, status, callback) {
     match.length = track.length;
     match.import_date = track.import_date;
  
-    match.offset.time = match.offset.offset / SECONDS_TO_TIMESTAMP;
+    match.offset.time = (match.offset.offset + match.offset.min_time) / SECONDS_TO_TIMESTAMP;
 
     callback(null, { success: true, status: status, match: match },
       allMatches);
@@ -289,7 +289,8 @@ function getActualScore(fp, match, threshold, slop) {
   match.histogram = timeDiffs;
 
   // Calculate the most likely offset of the query from the match.
-  offsets = [];
+  var offsets = [];
+  var min_time = Math.min.apply(null, fp.times);
   for (var i in offsetHistogram) {
     if (!offsetHistogram.hasOwnProperty(i)) {
       continue;
@@ -297,6 +298,7 @@ function getActualScore(fp, match, threshold, slop) {
 
     offsets.push({
       offset: parseInt(i, 10),
+      min_time: min_time,
       amount: offsetHistogram[i]
     });
   }
