@@ -1,22 +1,3 @@
-/**
- * A subclass of the Android ListView component that enables drag
- * and drop re-ordering of list items.
- *
- * Copyright 2012 Carl Bauer
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.mobeta.android.dslv;
 
 import android.content.Context;
@@ -25,6 +6,7 @@ import android.view.View;
 import android.view.View.MeasureSpec;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
+import android.widget.Checkable;
 import android.util.Log;
 
 /**
@@ -42,7 +24,7 @@ import android.util.Log;
  * The purpose of this class is to optimize slide
  * shuffle animations.
  */
-public class DragSortItemView extends ViewGroup {
+public class DragSortItemView extends ViewGroup implements Checkable {
 
     private int mGravity = Gravity.TOP;
 
@@ -51,10 +33,10 @@ public class DragSortItemView extends ViewGroup {
 
         // always init with standard ListView layout params
         setLayoutParams(new AbsListView.LayoutParams(
-                LayoutParams.FILL_PARENT,
-                LayoutParams.WRAP_CONTENT));
+                ViewGroup.LayoutParams.FILL_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT));
 
-        setClipChildren(true);
+        //setClipChildren(true);
     }
 
     public void setGravity(int gravity) {
@@ -104,7 +86,7 @@ public class DragSortItemView extends ViewGroup {
         }
 
         if (heightMode == MeasureSpec.UNSPECIFIED) {
-            LayoutParams lp = getLayoutParams();
+            ViewGroup.LayoutParams lp = getLayoutParams();
 
             if (lp.height > 0) {
                 height = lp.height;
@@ -116,4 +98,26 @@ public class DragSortItemView extends ViewGroup {
         setMeasuredDimension(width, height);
     }
 
+    @Override
+    public boolean isChecked() {
+        View child = getChildAt(0);
+        if (child instanceof Checkable)
+            return ((Checkable) child).isChecked();
+        else
+            return false;
+    }
+
+    @Override
+    public void setChecked(boolean checked) {
+        View child = getChildAt(0);
+        if (child instanceof Checkable)
+            ((Checkable) child).setChecked(checked);
+    }
+
+    @Override
+    public void toggle() {
+        View child = getChildAt(0);
+        if (child instanceof Checkable)
+            ((Checkable) child).toggle();
+    }
 }
