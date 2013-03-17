@@ -1,1 +1,2 @@
 *.pyc
+./android/AndroidFingerprinter/jni/boost_1_53_0/*
