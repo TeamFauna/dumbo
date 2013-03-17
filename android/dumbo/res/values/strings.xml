@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">dumbo</string>
+    <string name="app_name">Second Screen</string>
+    <string name="identify_button_text">Find What I\'m Watching!</string>
 </resources>
