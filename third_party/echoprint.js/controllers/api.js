@@ -4,82 +4,90 @@ var fingerprinter = require('./fingerprinter');
 var server = require('../server');
 var config = require('../config');
 
+exports.query = query;
+exports.insert = insert;
+
 /**
- * Querying for the closest matching track.
+ * Querying for the closest matching movie.
  */
-exports.query = function(req, res) {
+function query(req, res) {
   var url = urlParser.parse(req.url, true);
-  var code = url.query.code;
-  if (!code)
+  var debug = url.query.debug;
+  var codes = req.body;
+
+  if (!isValidCode(codes)) {
     return server.respond(req, res, 500, { error: 'Missing code' });
+  }
   
-  var codeVer = url.query.version;
-  if (codeVer != config.codever)
+  if (!isCorrectCodeVersion(codes)) {
     return server.respond(req, res, 500, { error: 'Missing or invalid version' });
+  }
   
-  fingerprinter.decodeCodeString(code, function(err, fp) {
+  fingerprinter.decodeCodeString(codes.string, function(err, fingerprint) {
     if (err) {
       log.error('Failed to decode codes for query: ' + err);
       return server.respond(req, res, 500, { error: 'Invalid code' });
     }
     
-    fp.codever = codeVer;
-    
-    fingerprinter.bestMatchForQuery(fp, config.code_threshold, function(err, result) {
+    fingerprinter.query(codes, fingerprint, function(err, result) {
       if (err) {
         log.warn('Failed to complete query: ' + err);
         return server.respond(req, res, 500, { error: 'Lookup failed' });
       }
       
       var duration = new Date() - req.start;
+      var success = !!result.success;
+
       log.debug('Completed lookup in ' + duration + 'ms. success=' +
-        !!result.success + ', status=' + result.status);
+        success + ', status=' + result.status);
       
-      return server.respond(req, res, 200, { success: !!result.success,
+      return server.respond(req, res, 200, { success: success,
         status: result.status, match: result.match || null });
     });
   });
 };
 
 /**
- * Adding a new track to the database.
+ * Insert a new movie to the database.
  */
-exports.ingest = function(req, res) {
-  var code = req.body.code;
-  var codeVer = req.body.version;
-  var track = req.body.track;
-  var length = req.body.length;
-  var artist = req.body.artist;
+function insert(req, res) {
+  var movie = req.body;
   
-  if (!code || !codeVer || isNaN(parseInt(length, 10)))
-    return server.respond(req, res, 500, { error: 'Missing or invalid required fields' });
+  if (!isValidCode(movie.codes)) {
+    return server.respond(req, res, 500, { error: 'Missing or invalid code fields' });
+  }
   
-  if (codeVer != config.codever)
+  if (!isCorrectCodeVersion(movie.codes)) {
     return server.respond(req, res, 500, { error: 'Invalid version' });
+  }
   
-  fingerprinter.decodeCodeString(code, function(err, fp) {
-    if (err || !fp.codes.length) {
-      log.error('Failed to decode codes for ingest: ' + err);
+  fingerprinter.decodeCodeString(movie.codes.string, function(err, fingerprint) {
+    if (err || !fingerprint.codes.length) {
+      log.error('Failed to decode codes for insert: ' + err);
       return server.respond(req, res, 500, { error: 'Invalid code' });
     }
     
-    fp.codever = codeVer;
-    fp.track = track;
-    fp.length = length;
-    fp.artist = artist;
-    
-    fingerprinter.ingest(fp, function(err, result) {
+    fingerprinter.insert(movie, fingerprint, function(err, result) {
       if (err) {
-        log.error('Failed to ingest track: ' + err);
-        return server.respond(req, res, 500, { error: 'Ingestion failed' });
+        log.error('Failed to insert movie: ' + err);
+        return server.respond(req, res, 500, { error: 'Insertion failed' });
       }
       
       var duration = new Date() - req.start;
-      log.debug('Ingested new track in ' + duration + 'ms. track_id=' +
-        result.track_id + ', artist_id=' + result.artist_id);
+      log.debug('Inserted new movie in ' + duration + 'ms. movie.id=' +
+        result.movie_id);
       
       result.success = true;
       return server.respond(req, res, 200, result);
     });
   });
 };
+
+function isValidCode(codes) {
+  return codes && codes.string && codes.version && !isNaN(parseInt(codes.length, 10));
+}
+
+function isCorrectCodeVersion(codes) {
+  return codes.version == config.codever;
+}
+

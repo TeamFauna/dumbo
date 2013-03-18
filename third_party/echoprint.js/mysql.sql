@@ -1,45 +1,63 @@
-
+DROP TABLE IF EXISTS `plot_events`;
+DROP TABLE IF EXISTS `role_events`;
+DROP TABLE IF EXISTS `roles`;
+DROP TABLE IF EXISTS `actors`;
 DROP TABLE IF EXISTS `codes`;
-DROP TABLE IF EXISTS `tracks`;
-DROP TABLE IF EXISTS `artists`;
+DROP TABLE IF EXISTS `movies`;
 
--- --------------------------------------------------------
---
--- Table structure for table `artists`
---
-
-CREATE TABLE IF NOT EXISTS `artists` (
-  `id` int (16) NOT NULL AUTO_INCREMENT,
+CREATE TABLE IF NOT EXISTS `movies` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `code_version` char(4) NOT NULL,
   `name` varchar(255) DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `name` (`name`)
-) DEFAULT CHARSET=utf8;
-
--- --------------------------------------------------------
---
--- Table structure for table `tracks`
---
-
-CREATE TABLE IF NOT EXISTS `tracks` (
-  `id` int (16) NOT NULL AUTO_INCREMENT,
-  `codever` char(4) NOT NULL,
-  `name` varchar(255) DEFAULT NULL,
-  `artist_id` int(16) NOT NULL,
-  `length` int(5) NOT NULL,
+  `imdb_url` varchar(255) DEFAULT NULL,
+  `length` int NOT NULL,
   `import_date` datetime NOT NULL,
-  PRIMARY KEY (`id`,`codever`),
-  FOREIGN KEY (`artist_id`) REFERENCES `artists`(`id`) ON DELETE CASCADE
+  PRIMARY KEY (`id`)
 ) DEFAULT CHARSET=utf8;
-
--- --------------------------------------------------------
---
--- Table structure for table `codes`
---
 
 CREATE TABLE IF NOT EXISTS `codes` (
-  `code` int(7) NOT NULL,
-  `time` int(7) NOT NULL,
-  `track_id` int(16) NOT NULL,
-  PRIMARY KEY (`code`,`time`,`track_id`),
-  FOREIGN KEY (`track_id`) REFERENCES `tracks`(`id`) ON DELETE CASCADE
+  `code` int NOT NULL,
+  `time_stamp` int NOT NULL,
+  `movie_id` int NOT NULL,
+  PRIMARY KEY (`code`,`time_stamp`,`movie_id`),
+  FOREIGN KEY (`movie_id`) REFERENCES `movies`(`id`)
 ) DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `actors` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) DEFAULT NULL,
+  `imdb_url` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `roles` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) DEFAULT NULL,
+  `imdb_url` varchar(255) DEFAULT NULL,
+  `actor` int NOT NULL,
+  PRIMARY KEY (`id`),
+  FOREIGN KEY (`actor`) REFERENCES `actors`(`id`)
+) DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `role_events` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `time_stamp` int NOT NULL,
+  `movie` int NOT NULL,
+  `role` int NOT NULL,
+  `blurb` text NOT NULL,
+  PRIMARY KEY (`id`),
+  INDEX (`movie`, `time_stamp`),
+  FOREIGN KEY (`movie`) REFERENCES `movies`(`id`),
+  FOREIGN KEY (`role`) REFERENCES `roles`(`id`)
+) DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `plot_events` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `time_stamp` int NOT NULL,
+  `movie` int NOT NULL,
+  `plot` text NOT NULL,
+  PRIMARY KEY (`id`),
+  INDEX (`movie`, `time_stamp`),
+  FOREIGN KEY (`movie`) REFERENCES `movies`(`id`)
+) DEFAULT CHARSET=utf8;
+
