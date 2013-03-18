@@ -3,13 +3,13 @@ package com.fawna.dumbo;
 import android.app.Activity;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Display;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
-
+import android.content.Intent;
+import android.view.View;
 
 public class FingerprintShowActivity extends Activity {
 
@@ -37,5 +37,13 @@ public class FingerprintShowActivity extends Activity {
               FrameLayout.LayoutParams.WRAP_CONTENT));
       cover.getLayoutParams().width = intendedWidth;
       cover.getLayoutParams().height = newHeight;
+
+    Button button = (Button) findViewById(R.id.button_identify);
+    button.setOnClickListener(new View.OnClickListener() {
+      public void onClick(View view) {
+        Intent intent = new Intent(FingerprintShowActivity.this, CardsActivity.class);
+        startActivity(intent);
+      }
+    });
   }
 }
