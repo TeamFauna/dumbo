@@ -20,11 +20,13 @@ public class FingerprintShowActivity extends Activity {
   public void onCreate(Bundle savedInstanceState) {
       super.onCreate(savedInstanceState);
       setContentView(R.layout.main);
+      layoutCover();
+  }
 
+  private void layoutCover() {
       Display display = getWindowManager().getDefaultDisplay();
       int screenWidth = display.getWidth();
 
-      // Scale cover correctly
       ImageView cover = (ImageView)findViewById(R.id.coverphoto);
       Drawable d = cover.getDrawable();
       int intendedWidth = screenWidth;
