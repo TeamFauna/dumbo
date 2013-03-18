@@ -3,8 +3,9 @@
                  android:layout_width="match_parent"
                  android:layout_height="match_parent" >
     <ImageView
-            android:layout_width="match_parent"
-            android:layout_height="212dp"
+            android:adjustViewBounds="true"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
             android:id="@+id/coverphoto"
             android:layout_alignParentTop="true"
             android:scaleType="fitXY"
@@ -13,15 +14,14 @@
     <Button
             android:layout_width="match_parent"
             android:layout_height="52dp"
-            android:layout_alignParentTop="true"
-            android:layout_marginTop="230dp"
             android:id="@+id/button_identify"
             android:layout_below="@id/coverphoto"
             android:background="@drawable/button_identify"
             android:layout_marginLeft="15dp"
             android:layout_marginRight="15dp"
+            android:layout_marginTop="20dp"
             android:textColor="#FFFFFF"
             android:text="@string/identify_button_text"
-            />
+            android:textStyle="bold"/>
 </RelativeLayout>
 
