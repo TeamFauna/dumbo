@@ -1,15 +1,21 @@
 package com.fawna.dumbo;
 
 import android.app.Activity;
+import android.graphics.drawable.AnimationDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.view.Display;
+import android.view.animation.Animation;
+import android.view.animation.ScaleAnimation;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.content.Intent;
 import android.view.View;
+
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class FingerprintShowActivity extends Activity {
 
@@ -21,6 +27,28 @@ public class FingerprintShowActivity extends Activity {
       super.onCreate(savedInstanceState);
       setContentView(R.layout.main);
       layoutCover();
+
+      final Button button = (Button)findViewById(R.id.button_identify);
+      button.setOnClickListener(new View.OnClickListener() {
+          public void onClick(View view) {
+              button.setText("");
+
+              ImageView img = (ImageView)findViewById(R.id.mic_animation);
+              img.setBackgroundResource(R.drawable.microphone_animation);
+              AnimationDrawable frameAnimation = (AnimationDrawable) img.getBackground();
+              frameAnimation.start();
+              img.setVisibility(View.VISIBLE);
+
+              Timer t = new Timer();
+              t.schedule(new TimerTask() {
+                  @Override
+                  public void run() {
+                      Intent intent = new Intent(FingerprintShowActivity.this, CardsActivity.class);
+                      startActivity(intent);
+                  }
+              }, 4000);
+          }
+      });
   }
 
   private void layoutCover() {
@@ -39,13 +67,5 @@ public class FingerprintShowActivity extends Activity {
               FrameLayout.LayoutParams.WRAP_CONTENT));
       cover.getLayoutParams().width = intendedWidth;
       cover.getLayoutParams().height = newHeight;
-
-    Button button = (Button) findViewById(R.id.button_identify);
-    button.setOnClickListener(new View.OnClickListener() {
-      public void onClick(View view) {
-        Intent intent = new Intent(FingerprintShowActivity.this, CardsActivity.class);
-        startActivity(intent);
-      }
-    });
   }
 }

@@ -11,17 +11,31 @@
             android:scaleType="fitXY"
             android:src="@drawable/cover"
             android:longClickable="true"/>
-    <Button
+    <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="52dp"
-            android:id="@+id/button_identify"
-            android:layout_below="@id/coverphoto"
-            android:background="@drawable/button_identify"
+            android:layout_height="62dp"
             android:layout_marginLeft="15dp"
             android:layout_marginRight="15dp"
             android:layout_marginTop="20dp"
-            android:textColor="#FFFFFF"
-            android:text="@string/identify_button_text"
-            android:textStyle="bold"/>
+            android:layout_below="@id/coverphoto"
+            >
+        <Button
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/button_identify"
+                android:background="@drawable/button_identify"
+                android:textColor="#FFFFFF"
+                android:text="@string/identify_button_text"
+                android:textStyle="bold"/>
+        <ImageView
+                android:layout_width="56dp"
+                android:layout_height="31dp"
+                android:id="@+id/mic_animation"
+                android:layout_centerInParent="true"
+                android:background="@drawable/icon_microphone_0"
+                android:scaleType="matrix"
+                android:visibility="invisible"
+                />
+    </RelativeLayout>
 </RelativeLayout>
 
