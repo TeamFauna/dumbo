@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+             android:layout_width="fill_parent"
+             android:layout_height="wrap_content"
+             android:background="#BBB">
+    <RelativeLayout
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:layout_margin="15dp"
+            android:background="@drawable/card_no_highlight">
+        <ImageView android:layout_height="wrap_content"
+                   android:layout_width="wrap_content"
+                   android:layout_marginTop="15dp"
+                   android:layout_marginLeft="15dp"
+                   android:layout_marginRight="10dp"
+                   android:id="@+id/plot_point_icon"
+                   android:layout_alignParentLeft="true"
+                   android:layout_alignParentTop="true"
+                   android:src="@drawable/icon_episode_description"/>
+        <TextView android:layout_height="wrap_content"
+                  android:layout_width="wrap_content"
+                  android:layout_marginTop="12dp"
+                  android:layout_toRightOf="@id/plot_point_icon"
+                  android:text="Episode Description"/>
+        <TextView android:layout_height="wrap_content"
+                  android:layout_width="wrap_content"
+                  android:layout_marginLeft="15dp"
+                  android:layout_marginTop="10dp"
+                  android:textSize="22dp"
+                  android:textStyle="bold"
+                  android:id="@+id/episode_name"
+                  android:layout_below="@id/plot_point_icon"
+                  android:text="The Fellowship Of the Ring"/>
+        <TextView android:layout_height="wrap_content"
+                  android:layout_width="wrap_content"
+                  android:layout_marginLeft="15dp"
+                  android:layout_marginRight="15dp"
+                  android:layout_marginTop="5dp"
+                  android:layout_marginBottom="15dp"
+                  android:id="@+id/episode_description"
+                  android:layout_below="@id/episode_name"
+                  android:text="A hobbit named Frodo must take the ring of power to Mordor, where it must be destroyed to restore balance to Middle Earth. Frodo is accompioned on his journey by a fellowship of men, elves, and dwarves."/>
+    </RelativeLayout>
+</FrameLayout>
