@@ -1,0 +1,16 @@
+{
+  "imdb_url": "",
+  "name": "",
+  "roles": [
+    { "name": "", "actor": 0, "imdb_url": ""}
+  ],
+  "actors": [
+    { "name": "", "imdb_url": "" }
+  ],
+  "role_events": [
+    { "blurb": "", "role": 0, "timestamp": 324234 }
+  ],
+  "plot_events": [
+    { "plot": "", "timestamp": 0 }
+  ]
+}
