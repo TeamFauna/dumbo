@@ -200,20 +200,18 @@ function getMovieMetadata(match, allMatches, status, callback) {
     if (err) {
       return callback(err, null);
     }
-
-    if (!movie) {
-      return callback('Movie ' + match.movie_id + ' went missing', null);
-    }
     
-    match.name = movie.name;
-    match.imdb_url = movie.imdb_url;
-    match.length = movie.length;
-    match.import_date = movie.import_date;
- 
+    match.metadata = movie;
     match.offset.time = (match.offset.offset + match.offset.min_time) / SECONDS_TO_TIMESTAMP;
 
-    callback(null, { success: true, status: status, match: match },
-      allMatches);
+    database.getEvents(match.movie_id, function(err, events) {
+      if (err) {
+        return callback(err, null);
+      }
+
+      match.metadata.events = events;
+      callback(null, { success: true, status: status, match: match }, allMatches);
+    });
   });
 }
 

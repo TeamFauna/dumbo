@@ -10,8 +10,7 @@ var config = require('../config');
 
 exports.query = query;
 exports.getMovie = getMovie;
-//exports.getMovieByName = getMovieByName;
-//exports.getMovieEvents = getMovieEvents;
+exports.getEvents = getEvents;
 exports.insertMovie = insertMovie;
 exports.insertCodes = insertCodes;
 exports.insertPlotEvents = insertPlotEvents;
@@ -94,16 +93,55 @@ function getMovie(movieID, callback) {
   });
 }
 
-function getEvents(movieID, callback, startTime, stopTime) {
-  var sql = 'SELECT id, time_stamp, role, null as plot FROM role_events WHERE movie=? AND time_stamp >= ? AND time_stamp < ?' +
-            'UNION' +
-            'SELECT id, time_stamp, null, plot FROM actor_events WHERE movie=? AND time_stamp >= ? AND time_stamp < ?';
-  client.query(sql, [movieID, startTime, stopTime, movieID, startTime, stopTime],
-      function(err, events) {
-    if (events && events.length >= 1) {
-      return callback(null, events);
+function getEvents(movie_id, callback) {
+  var events = [];
+
+  var sql =
+    'SELECT re.time_stamp, re.blurb, r.name as role, r.imdb_url as role_imdb, ' +
+      'a.name as actor, a.imdb_url as actor_imdb ' +
+      'FROM role_events re, roles r, actors a ' +
+      'WHERE re.movie = ? AND re.role = r.id AND r.actor = a.id ';
+  client.query(sql, [movie_id], function(err, role_events) {
+    if (err) {
+      return callback(err, null);
     }
-    return callback(err, null);
+
+    for (var i = 0; i < role_events.length; i++) {
+      var role_event = role_events[i];
+      events.push({
+        time_stamp: role_event.time_stamp,
+        text: role_event.blurb,
+        role: {
+          name: role_event.role,
+          imdb_url: role_event.role_imdb
+        },
+        actor: {
+          name: role_event.actor,
+          imdb_url: role_event.actor_imdb
+        }
+      });
+    }
+
+    var sql = 'SELECT time_stamp, plot FROM plot_events WHERE movie = ?';
+    client.query(sql, [movie_id], function(err, plot_events) {
+      if (err) {
+        return callback(err, null);
+      }
+      
+      for (var i = 0; i < plot_events.length; i++) {
+        var plot_event = plot_events[i];
+        events.push({
+          time_stamp: plot_event.time_stamp,
+          text: plot_event.plot
+        });
+      }
+
+      events.sort(function(a, b) {
+        return a.time_stamp - b.time_stamp;
+      });
+
+      callback(null, events);
+    });
   });
 }
 
