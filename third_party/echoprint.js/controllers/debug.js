@@ -47,53 +47,53 @@ exports.debugQuery = function(req, res) {
     fp = fingerprinter.cutFPLength(fp);
     
     fingerprinter.bestMatchForQuery(fp, config.code_threshold,
-      function(err, result, allMatches)
-    {
-      if (err) {
-        log.warn('Failed to complete debug query: ' + err);
-        return server.renderView(req, res, 500, 'debug.jade',
-          { err: 'Lookup failed', input: req.body.json });
-      }
-      
-      var duration = new Date() - req.start;
-      log.debug('Completed debug lookup in ' + duration + 'ms. success=' +
-        !!result.success + ', status=' + result.status);
-      
-      // TODO: Determine a useful set of data to return about the query and
-      // each match and return it in an HTML view
-      if (allMatches) {
-        async.forEach(allMatches,
-          function(match, done) {
-            fingerprinter.getTrackMetadata(match, null, null, function(err) {
-              match.codeLength = Math.ceil(match.length * fingerprinter.SECONDS_TO_TIMESTAMP);
-              // Find each match that contributed to ascore
-              getContributors(fp, match);
-              delete match.codes;
-              delete match.times;
+      function(err, result, allMatches) {
+        if (err) {
+          log.warn('Failed to complete debug query: ' + err);
+          return server.renderView(req, res, 500, 'debug.jade',
+            { err: 'Lookup failed', input: req.body.json });
+        }
+        
+        var duration = new Date() - req.start;
+        log.debug('Completed debug lookup in ' + duration + 'ms. success=' +
+          !!result.success + ', status=' + result.status);
+        
+        // TODO: Determine a useful set of data to return about the query and
+        // each match and return it in an HTML view
+        if (allMatches) {
+          async.forEach(allMatches,
+            function(match, done) {
+              fingerprinter.getMovieMetadata(match, null, null, function(err) {
+                match.codeLength = Math.ceil(match.length * fingerprinter.SECONDS_TO_TIMESTAMP);
+                // Find each match that contributed to ascore
+                getContributors(fp, match);
+                delete match.codes;
+                delete match.times;
+                
+                done(err);
+              });
+            },
+            function(err) {
+              if (err) {
+                return server.renderView(req, res, 500, 'debug.jade',
+                  { err: 'Metadata lookup failed:' + err });
+              }
               
-              done(err);
-            });
-          },
-          function(err) {
-            if (err) {
-              return server.renderView(req, res, 500, 'debug.jade',
-                { err: 'Metadata lookup failed:' + err });
+              renderView();
             }
-            
-            renderView();
-          }
-        );
-      } else {
-        renderView();
+          );
+        } else {
+          renderView();
+        }
+        
+        function renderView() {
+          var json = JSON.stringify({ success: !!result.success, status: result.status,
+            queryLen: fp.codes.length, matches: allMatches, queryTime: duration });
+          return server.renderView(req, res, 200, 'debug.jade', { res: json,
+            input: req.body.json });
+        }
       }
-      
-      function renderView() {
-        var json = JSON.stringify({ success: !!result.success, status: result.status,
-          queryLen: fp.codes.length, matches: allMatches, queryTime: duration });
-        return server.renderView(req, res, 200, 'debug.jade', { res: json,
-          input: req.body.json });
-      }
-    });
+    );
   });
 };
 

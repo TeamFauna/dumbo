@@ -13,16 +13,10 @@ var MATCH_SLOP = 2;
 
 // Exports
 exports.decodeCodeString = decodeCodeString;
-exports.cutFPLength = cutFPLength;
-exports.getCodesToTimes = getCodesToTimes;
-exports.bestMatchForQuery = bestMatchForQuery;
-exports.getTrackMetadata = getTrackMetadata;
-exports.ingest = ingest;
-exports.SECONDS_TO_TIMESTAMP = SECONDS_TO_TIMESTAMP;
-exports.MATCH_SLOP = MATCH_SLOP;
+exports.query = query;
+exports.insert = insert;
 
 // Globals
-var gTimestamp = +new Date();
 var gMutex = Mutex.getMutex();
 
 /**
@@ -110,59 +104,59 @@ function cutFPLength(fp, maxSeconds) {
 }
 
 /**
- * Finds the closest matching track, if any, to a given fingerprint.
+ * Finds the closest matching movie, if any, to a given fingerprint.
  */
-function bestMatchForQuery(fp, threshold, callback) {
-  fp = cutFPLength(fp);
+function query(codes, fingerprint, callback) {
+  fingerprint = cutFPLength(fingerprint);
   
-  if (!fp.codes.length)
+  if (!fingerprint.codes.length)
     return callback('No valid fingerprint codes specified', null);
   
-  log.debug('Starting query with ' + fp.codes.length + ' codes');
+  log.debug('Starting query with ' + fingerprint.codes.length + ' codes');
   
-  database.fpQuery(fp, MAX_ROWS, function(err, matches) {
+  database.query(fingerprint, MAX_ROWS, function(err, matches) {
     if (err) return callback(err, null);
     
     if (!matches || !matches.length) {
-      log.debug('No matched tracks');
+      log.debug('No matched movies');
       return callback(null, { status: 'NO_RESULTS' });
     }
     
-    log.debug('Matched ' + matches.length + ' tracks, top code overlap is ' +
+    log.debug('Matched ' + matches.length + ' movies, top code overlap is ' +
       matches[0].score);
     
     // If the best result matched fewer codes than our percentage threshold,
     // report no results
-    if (matches[0].score < fp.codes.length * MIN_MATCH_PERCENT)
+    if (matches[0].score < fingerprint.codes.length * MIN_MATCH_PERCENT)
       return callback(null, { status: 'MULTIPLE_BAD_HISTOGRAM_MATCH' });
     
-    // Compute more accurate scores for each track by taking time offsets into
+    // Compute more accurate scores for each movie by taking time offsets into
     // account
     var newMatches = [];
     var newCount = 0;
     for (var i = 0; i < matches.length; i++) {
       var match = matches[i];
-      match.ascore = getActualScore(fp, match, threshold, MATCH_SLOP);
+      match.ascore = getActualScore(fingerprint, match, MATCH_SLOP);
       if (match.ascore)
         newMatches[newCount++] = match;
     }
     matches = newMatches;
     
     if (!matches.length) {
-      log.debug('No matched tracks after score adjustment');
+      log.debug('No matched movies after score adjustment');
       return callback(null, { status: 'NO_RESULTS_HISTOGRAM_DECREASED' });
     }
     
-    // If we only had one track match, just use the threshold to determine if
+    // If we only had one movie match, just use the threshold to determine if
     // the match is good enough
     if (matches.length === 1) {
-      if (matches[0].ascore / fp.codes.length >= MIN_MATCH_PERCENT) {
+      if (matches[0].ascore / fingerprint.codes.length >= MIN_MATCH_PERCENT) {
         // Fetch metadata for the single match
-        return getTrackMetadata(matches[0], matches,
+        return getMovieMetadata(matches[0], matches,
           'SINGLE_GOOD_MATCH_HISTOGRAM_DECREASED', callback);
       } else {
         log.debug('Single bad match with actual score ' + matches[0].ascore +
-          '/' + fp.codes.length);
+          '/' + fingerprint.codes.length);
         return callback(null, { status: 'SINGLE_BAD_MATCH' });
       }
     }
@@ -180,7 +174,7 @@ function bestMatchForQuery(fp, threshold, callback) {
     
     // If the best result actually matched fewer codes than our percentage
     // threshold, report no results
-    if (newTopScore < fp.codes.length * MIN_MATCH_PERCENT)
+    if (newTopScore < fingerprint.codes.length * MIN_MATCH_PERCENT)
       return callback(null, { status: 'MULTIPLE_BAD_HISTOGRAM_MATCH' });
     
     // If the actual score was not close enough, then no match
@@ -192,26 +186,29 @@ function bestMatchForQuery(fp, threshold, callback) {
     if (newTopScore - matches[1].ascore < newTopScore / 2)
       return callback(null, { status: 'MULTIPLE_BAD_HISTOGRAM_MATCH' });
     
-    // Fetch metadata for the top track
-    getTrackMetadata(topMatch, matches,
+    // Fetch metadata for the top movie
+    getMovieMetadata(topMatch, matches,
       'MULTIPLE_GOOD_MATCH_HISTOGRAM_DECREASED', callback);
   });
 }
 
 /**
- * Attach track metadata to a query match.
+ * Attach movie metadata to a query match.
  */
-function getTrackMetadata(match, allMatches, status, callback) {
-  database.getTrack(match.track_id, function(err, track) {
-    if (err) return callback(err, null);
-    if (!track)
-      return callback('Track ' + match.track_id + ' went missing', null);
+function getMovieMetadata(match, allMatches, status, callback) {
+  database.getMovie(match.movie_id, function(err, movie) {
+    if (err) {
+      return callback(err, null);
+    }
+
+    if (!movie) {
+      return callback('Movie ' + match.movie_id + ' went missing', null);
+    }
     
-    match.track = track.name;
-    match.artist = track.artist_name;
-    match.artist_id = track.artist_id;
-    match.length = track.length;
-    match.import_date = track.import_date;
+    match.name = movie.name;
+    match.imdb_url = movie.imdb_url;
+    match.length = movie.length;
+    match.import_date = movie.import_date;
  
     match.offset.time = (match.offset.offset + match.offset.min_time) / SECONDS_TO_TIMESTAMP;
 
@@ -241,14 +238,15 @@ function getCodesToTimes(match, slop) {
 }
 
 /**
- * Computes the actual match score for a track by taking time offsets into
+ * Computes the actual match score for a movie by taking time offsets into
  * account.
  */
-function getActualScore(fp, match, threshold, slop) {
+function getActualScore(fp, match, slop) {
   var MAX_DIST = 32767;
   
-  if (match.codes.length < threshold)
+  if (match.codes.length < config.code_threshold) {
     return 0;
+  }
   
   var timeDiffs = {};
   var offsetHistogram = {};
@@ -325,150 +323,91 @@ function getActualScore(fp, match, threshold, slop) {
 }
 
 /**
- * Takes a track fingerprint (includes codes and time offsets plus any
- * available metadata), adds it to the database and returns a track_id,
- * artist_id, and artist name if available.
+ * Takes a movie fingerprint (includes codes and time offsets plus any
+ * available metadata), adds it to the database and returns a movie_id
  */
-function ingest(fp, callback) {
-  var MAX_DURATION = 60 * 10;
+function insert(movie, fp, callback) {
+  log.info('Ingesting movie "' + movie.name +
+    '", ' + movie.length + ' seconds, ' + fp.codes.length + ' codes');
   
-  log.info('Ingesting track "' + fp.track + '" by artist "' + fp.artist +
-    '", ' + fp.length + ' seconds, ' + fp.codes.length + ' codes');
-  
-  if (!fp.codes.length || typeof fp.length !== 'number' || !fp.codever)
-    return callback('Missing required track fields', null);
-  
-  fp = cutFPLength(fp, MAX_DURATION);
+  if (!isValidFP(fp)) {
+    return callback('Missing required movie fields', null);
+  }
   
   // Acquire a lock while modifying the database
   gMutex.lock(function() {
-    // Check if this track already exists in the database
-    bestMatchForQuery(fp, config.code_threshold, function(err, res) {
+    query(movie.codes, fp, function(err, res) {
       if (err) {
-        gMutex.release();
-        return callback('Query failed: ' + err, null);
+        return error('Query failed: ' + err);
       }
-      
+
       if (res.success) {
-        var match = res.match;
-        log.info('Found existing match with status ' + res.status +
-          ', track ' + match.track_id + ' ("' + match.track + '") by "' +
-          match.artist + '"');
-        
-        var checkUpdateArtist = function() {
-          if (!match.artist && fp.artist) {
-            // Existing artist is unnamed but we have a name now. Check if this
-            // artist name already exists in the database
-            log.debug('Updating track artist');
-            database.getArtistByName(fp.artist, function(err, artist) {
-              if (err) { gMutex.release(); return callback(err, null); }
-              
-              if (artist) {
-                log.debug('Setting track artist_id to ' + artist.artist_id);
-                
-                // Update the track to point to the existing artist
-                database.updateTrack(match.track_id, match.track,
-                  artist.artist_id, function(err)
-                {
-                  if (err) { gMutex.release(); return callback(err, null); }
-                  match.artist_id = artist.artist_id;
-                  match.artist = artist.name;
-                  finished(match);
-                });
-              } else {
-                log.debug('Setting artist ' + artist.artist_id + ' name to "' +
-                  artist.name + '"');
-                
-                // Update the artist name
-                database.updateArtist(match.artist_id, fp.artist,
-                  function(err)
-                {
-                  if (err) { gMutex.release(); return callback(err, null); }
-                  match.artist = fp.artist;
-                  finished(match);
-                });
-              }
-            });
-          } else {
-            if (match.artist != fp.artist) {
-              log.warn('New artist name "' + fp.artist + '" does not match ' +
-                'existing artist name "' + match.artist + '" for track ' +
-                match.track_id);
-            }
-            log.debug('Skipping artist update');
-            finished(match);
-          }
-        };
-        
-        var finished = function(match) {
-          // Success
-          log.info('Track update complete');
-          gMutex.release();
-          callback(null, { track_id: match.track_id, track: match.track,
-            artist_id: match.artist_id, artist: match.artist });
-        };
-        
-        if (!match.track && fp.track) {
-          // Existing track is unnamed but we have a name now. Update the track
-          log.debug('Updating track name to "' + fp.track + '"');
-          database.updateTrack(match.track_id, fp.track, match.artist_id,
-            function(err)
-          {
-            if (err) { gMutex.release(); return callback(err, null); }
-            match.track = fp.track;
-            checkUpdateArtist();
-          });
-        } else {
-          log.debug('Skipping track name update');
-          checkUpdateArtist();
-        }
       } else {
-        // Track does not exist in the database yet
-        log.debug('Track does not exist in the database yet, status ' +
-          res.status);
-        
-        // Check if we were given an artist name
-        if (fp.artist) {
-          // Does this artist already exist in the database?
-          database.getArtistByName(fp.artist, function(err, artist) {
-            if (err) { gMutex.release(); return callback(err, null); }
-            
-            if (!artist) {
-              createArtistAndTrack();
-            } else {
-              console.log(artist);
-              log.info('Found artist ' + artist.artist_id + ' ("' + artist.name + '")');
-              createTrack(artist.artist_id, artist.name);
+        database.insertMovie(movie, function(err, movie_id) {
+          if (err) {
+            return error('Error inserting movie: ' + err);
+          }
+
+          database.insertCodes(movie_id, fp, function(err) {
+            if (err) {
+              log.error('Error inserting codes: ' + err);
             }
           });
-        } else {
-          createArtistAndTrack();
-        }
-      }
-      
-      // Function for creating a new artist and new track
-      function createArtistAndTrack() {
-        database.addArtist(fp.artist, function(err, artistID) {
-          if (err) { gMutex.release(); return callback(err, null); }
-          
-          // Success
-          log.info('Created artist ' + artistID + ' ("' + fp.artist + '")');
-          createTrack(artistID, fp.artist);
-        });
-      }
-      
-      // Function for creating a new track given an artistID
-      function createTrack(artistID, artist) {
-        database.addTrack(artistID, fp, function(err, trackID) {
-          if (err) { gMutex.release(); return callback(err, null); }
-          
-          // Success
-          log.info('Created track ' + trackID + ' ("' + fp.track + '")');
-          gMutex.release();
-          callback(null, { track_id: trackID, track: fp.track,
-            artist_id: artistID, artist: artist });
+
+          database.insertPlotEvents(movie_id, movie.plot_events, function(err) {
+            if (err) {
+              log.error('Error inserting plot events: ' + err);
+            }
+          });
+
+          database.insertActors(movie.actors, function(err, actor_ids) {
+            if (err) {
+              return error('Error inserting actors: ' + err);
+            }
+
+            for (var i = 0; i < movie.roles.length; i++) {
+              var role = movie.roles[i];
+              role.actor_id = actor_ids[role.actor];
+            }
+
+            database.insertRoles(movie.roles, function(err, role_ids) {
+              if (err) {
+                return error('Error inserting roles: ' + err);
+              }
+
+              for (var i = 0; i < movie.role_events.length; i++) {
+                var role_event = movie.role_events[i];
+                role_event.role_id = role_ids[role_event.role];
+              }
+
+              database.insertRoleEvents(movie_id, movie.role_events, function(err) {
+                if (err) {
+                  return error('Error inserting role events: ' + err);
+                }
+
+                return success(movie_id);
+              });
+            });
+          });
         });
       }
     });
   });
+
+  function error(error_string) {
+    gMutex.release();
+    log.error(error_string);
+    callback(error_string, null);
+  }
+
+  function success(movie_id) {
+    gMutex.release();
+    log.info('Created movie_id: ' + movie_id + ' for ' + movie.name);
+    callback(null, { movie_id: movie_id });
+  }
 }
+
+function isValidFP(fp) {
+  return fp.codes.length && fp.times.length;
+}
+
