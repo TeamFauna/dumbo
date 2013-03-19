@@ -3,13 +3,14 @@ package com.fawna.dumbo;
 import android.app.ListActivity;
 import android.content.Intent;
 import android.database.DataSetObserver;
+import android.graphics.Typeface;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.view.Display;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.ImageButton;
-import android.widget.ListAdapter;
+import android.widget.*;
 
 public class CardsActivity extends ListActivity {
 
@@ -43,7 +44,29 @@ public class CardsActivity extends ListActivity {
       description = getLayoutInflater().inflate(R.layout.plot_point, null);
       actor = getLayoutInflater().inflate(R.layout.actor_card, null);
 
+      TextView tv = (TextView) headerView.findViewById(R.id.show_title);
+      Typeface tf = Typeface.createFromAsset(getAssets(), "fonts/avenir_next.ttc");
+      tv.setTypeface(tf);
 
+      layoutCover();
+    }
+
+    private void layoutCover() {
+      Display display = getWindowManager().getDefaultDisplay();
+      int screenWidth = display.getWidth();
+
+      ImageView cover = (ImageView)headerView.findViewById(R.id.lotr_cover);
+      Drawable d = cover.getDrawable();
+      int intendedWidth = screenWidth;
+      int originalWidth = d.getIntrinsicWidth();
+      int originalHeight = d.getIntrinsicHeight();
+      float scale = (float)intendedWidth / originalWidth;
+      int newHeight = Math.round(originalHeight * scale);
+      cover.setLayoutParams(new FrameLayout.LayoutParams(
+              FrameLayout.LayoutParams.WRAP_CONTENT,
+              FrameLayout.LayoutParams.WRAP_CONTENT));
+      cover.getLayoutParams().width = intendedWidth;
+      cover.getLayoutParams().height = newHeight;
     }
 
     @Override

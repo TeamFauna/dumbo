@@ -26,7 +26,8 @@
                 android:background="@drawable/button_identify"
                 android:textColor="#FFFFFF"
                 android:text="@string/identify_button_text"
-                android:textStyle="bold"/>
+                android:textStyle="bold"
+                />
         <ImageView
                 android:layout_width="56dp"
                 android:layout_height="31dp"

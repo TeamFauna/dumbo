@@ -46,7 +46,7 @@ public class FingerprintShowActivity extends Activity {
                       Intent intent = new Intent(FingerprintShowActivity.this, CardsActivity.class);
                       startActivity(intent);
                   }
-              }, 4000);
+              }, 50);
           }
       });
   }
