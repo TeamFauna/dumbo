@@ -224,7 +224,7 @@ function getMovieMetadata(match, allMatches, status, callback) {
  */
 function getCodesToTimes(match, slop) {
   var codesToTimes = {};
-  
+
   for (var i = 0; i < match.codes.length; i++) {
     var code = match.codes[i];
     var time = Math.floor(match.times[i] / slop);
