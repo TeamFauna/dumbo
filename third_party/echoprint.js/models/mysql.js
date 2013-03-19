@@ -35,7 +35,7 @@ var client = mysql.createClient({
 function query(fp, rows, callback) {
   var fpCodesStr = fp.codes.join(',');
   
-  // Get the top N matching tracks sorted by score (number of matched codes)
+  // Get the top N matching movies sorted by score (number of matched codes)
   var sql = 'SELECT movie_id, COUNT(movie_id) AS score ' +
     'FROM codes ' +
     'WHERE code IN (' + fpCodesStr + ') ' +
@@ -47,27 +47,27 @@ function query(fp, rows, callback) {
     if (err) return callback(err, null);
     if (!matches || !matches.length) return callback(null, []);
     
-    var trackIDs = new Array(matches.length);
-    var trackIDMap = {};
+    var movie_ids = new Array(matches.length);
+    var movie_id_map = {};
     for (var i = 0; i < matches.length; i++) {
-      var trackID = matches[i].track_id;
-      trackIDs[i] = trackID;
-      trackIDMap[trackID] = i;
+      var movie_id = matches[i].movie_id;
+      movie_ids[i] = movie_id;
+      movie_id_map[movie_id] = i;
     }
-    var trackIDsStr = trackIDs.join('","');
+    var movie_id_string = movie_ids.join('","');
     
     // Get all of the matching codes and their offsets for the top N matching
-    // tracks
-    sql = 'SELECT code, time_stamp, movie_id' +
+    // movies
+    sql = 'SELECT code, time_stamp as time, movie_id ' +
       'FROM codes ' +
       'WHERE code IN (' + fpCodesStr + ') ' +
-      'AND movie_id IN ("' + trackIDsStr + '")';
+      'AND movie_id IN (' + movie_id_string + ')';
     client.query(sql, [], function(err, codeMatches) {
       if (err) return callback(err, null);
       
       for (var i = 0; i < codeMatches.length; i++) {
         var codeMatch = codeMatches[i];
-        var idx = trackIDMap[codeMatch.track_id];
+        var idx = movie_id_map[codeMatch.movie_id];
         if (idx === undefined) continue;
         
         var match = matches[idx];
@@ -128,25 +128,25 @@ function insertMovie(movie, callback) {
 
 function insertCodes(movie_id, fp, callback) {
   // Write out the codes to a file for bulk insertion into MySQL
-  var temp_name = temp.path({ prefix: 'echoprint-' + movie_id, suffix: '.csv' });
-  
+  var file_name = temp.path({ prefix: 'echoprint-' + movie_id, suffix: '.csv' });
+  var sql_file_name = file_name;
+
   // Hack for cygwin on Russell's computer.  Will make better later... maybe.
-  //if (tempName.indexOf('C:\\cygwin') == 0) {
-    //filename.replace('\\', '/');
-    //filename = filename.slice(2);
-    //var tempName = '/cygwin/tmp/testing.csv';
-  //}
+  if (sql_file_name.indexOf('C:\\cygwin') == 0) {
+    sql_file_name = sql_file_name.replace(/\\/g, '/');
+    sql_file_name = sql_file_name.slice(9);
+  }
 
   console.log('Writing to file');
-  writeCodesToFile(temp_name, fp, movie_id, function(err) {
+  writeCodesToFile(file_name, fp, movie_id, function(err) {
     if (err) return callback(err, null);
     
     console.log('Running SQL query');
     // Bulk insert the codes
     sql = 'LOAD DATA INFILE ? IGNORE INTO TABLE codes';
-    client.query(sql, [temp_name], function(err, info) {
+    client.query(sql, [sql_file_name], function(err, info) {
       // Remove the temporary file
-      fs.unlink(temp_name, function(err2) {
+      fs.unlink(file_name, function(err2) {
         if (!err) err = err2;
         callback(err, movie_id);
       });
@@ -154,7 +154,7 @@ function insertCodes(movie_id, fp, callback) {
   });
 }
 
-function writeCodesToFile(filename, fp, movie_id, callback) {
+function writeCodesToFile(file_name, fp, movie_id, callback) {
   var i = 0;
   var keepWriting = function() {
     var success = true;
@@ -168,7 +168,7 @@ function writeCodesToFile(filename, fp, movie_id, callback) {
     }
   };
 
-  var file = fs.createWriteStream(filename);
+  var file = fs.createWriteStream(file_name);
   file.on('drain', keepWriting);
   file.on('error', callback);
   file.on('close', callback);
