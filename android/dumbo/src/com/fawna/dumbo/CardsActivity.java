@@ -3,6 +3,7 @@ package com.fawna.dumbo;
 import android.app.ListActivity;
 import android.content.Intent;
 import android.database.DataSetObserver;
+import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
@@ -24,7 +25,7 @@ public class CardsActivity extends ListActivity {
 
   public class CardsAdapter implements ListAdapter {
 
-    private int size = 3;
+    private int size = 4;
     private View headerView;
     private View description;
     private View actor;
@@ -62,9 +63,9 @@ public class CardsActivity extends ListActivity {
       int originalHeight = d.getIntrinsicHeight();
       float scale = (float)intendedWidth / originalWidth;
       int newHeight = Math.round(originalHeight * scale);
-      cover.setLayoutParams(new FrameLayout.LayoutParams(
-              FrameLayout.LayoutParams.WRAP_CONTENT,
-              FrameLayout.LayoutParams.WRAP_CONTENT));
+      cover.setLayoutParams(new RelativeLayout.LayoutParams(
+              RelativeLayout.LayoutParams.WRAP_CONTENT,
+              RelativeLayout.LayoutParams.WRAP_CONTENT));
       cover.getLayoutParams().width = intendedWidth;
       cover.getLayoutParams().height = newHeight;
     }
@@ -110,11 +111,18 @@ public class CardsActivity extends ListActivity {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-      if (position == 0)
+      if (position == 0) {
         return headerView;
-      if (position == 1)
+      } else if (position == 1) {
+          TextView padding = new TextView(getBaseContext());
+          padding.setBackgroundColor(Color.argb(255, 196, 196, 196));
+          padding.setHeight(30);
+          return padding;
+      } else if (position == 2) {
         return description;
-      return actor;
+      } else {
+        return actor;
+      }
     }
 
     @Override
