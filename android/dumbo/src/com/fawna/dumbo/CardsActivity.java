@@ -31,8 +31,11 @@ public class CardsActivity extends ListActivity {
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.cardsview);
+
+    String imdb = getIntent().getStringExtra("imdb");
+
     timer = new Timer();
-    CardsAdapter adapter = new CardsAdapter();
+    CardsAdapter adapter = new CardsAdapter(imdb);
     setListAdapter(adapter);
 
     final long time = System.currentTimeMillis();
@@ -44,8 +47,10 @@ public class CardsActivity extends ListActivity {
           @Override
           public void run() {
             final TextView currentTime = (TextView) findViewById(R.id.current_time);
-            long current = (System.currentTimeMillis() - time) / 1000;
-            currentTime.setText("" + String.format("%d", current / 60) + ":" + String.format("%02d", current % 60));
+            if (currentTime != null) {
+              long current = (System.currentTimeMillis() - time) / 1000;
+              currentTime.setText("" + String.format("%d", current / 60) + ":" + String.format("%02d", current % 60));
+            }
           }
         });
       }
@@ -152,10 +157,11 @@ public class CardsActivity extends ListActivity {
     private List<View> cards;
     final static int EXTRA_VIEWS = 2;
 
-    public CardsAdapter() {
+    public CardsAdapter(String imdbUrl) {
 
       // test data with HIMYM
-      headerView = generateHeader("http://www.imdb.com/title/tt1777828/");
+      //headerView = generateHeader("http://www.imdb.com/title/tt1777828/");
+      headerView = generateHeader(imdbUrl);
 
       cards = new ArrayList<View>();
       View actor1 = generateActorCard("Josh Radnor", "http://ia.media-imdb.com/images/M/MV5BMjAwNTUxMTM4OF5BMl5BanBnXkFtZTcwNjUyNzc4Mg@@._V1._SY314_CR3,0,214,314_.jpg", "http://www.imdb.com/name/nm1102140/");

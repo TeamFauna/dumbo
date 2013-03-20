@@ -4,9 +4,8 @@ import android.app.Activity;
 import android.graphics.drawable.AnimationDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Display;
-import android.view.animation.Animation;
-import android.view.animation.ScaleAnimation;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -14,14 +13,9 @@ import android.widget.RelativeLayout;
 import android.content.Intent;
 import android.view.View;
 
-import java.util.Timer;
-import java.util.TimerTask;
-import fauna.dumbo.Fingerprinter;
-import fauna.dumbo.Fingerprinter.AudioFingerprinterListener;
 
 public class FingerprintShowActivity extends Activity 
 {
-  boolean recording, resolved;
   FingerprintListener fingerprinter;
 
   /**
@@ -82,6 +76,7 @@ public class FingerprintShowActivity extends Activity
   public void didFindMatchForCode(MovieInfo table) 
   {
     Intent intent = new Intent(FingerprintShowActivity.this, CardsActivity.class);
+    intent.putExtra("imdb", table.imdb);
     startActivity(intent);
   }
 
