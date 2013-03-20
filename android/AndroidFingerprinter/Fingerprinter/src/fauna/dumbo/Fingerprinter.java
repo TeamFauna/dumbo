@@ -36,7 +36,9 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.entity.StringEntity;
 import org.json.JSONObject;
 
 import android.app.Activity;
@@ -61,7 +63,7 @@ public class Fingerprinter implements Runnable
   public final static String TRACK_ID_KEY = "track_id";
   public final static String ARTIST_KEY = "artist";
 
-  private final String SERVER_URL = "http://www.willhughes.ca/echo/query?version=4.12&code=";
+  private final String SERVER_URL = "http://www.willhughes.ca/echo/query";
 
   private final int FREQUENCY = 11025;
   private final int CHANNEL = AudioFormat.CHANNEL_IN_MONO;
@@ -253,12 +255,23 @@ public class Fingerprinter implements Runnable
             // fetch data from echonest
             time = System.currentTimeMillis();
 
-          String urlstr = SERVER_URL + code;      
-          HttpClient client = new DefaultHttpClient();
-            HttpGet get = new HttpGet(urlstr);
+            JSONObject requestJson = new JSONObject();
+            requestJson.put("version", "4.12");
+            requestJson.put("length", "1");
+            requestJson.put("string", code);
+
+            StringEntity se = new StringEntity(requestJson.toString());
+
+            String urlstr = SERVER_URL;      
+            HttpClient client = new DefaultHttpClient();
+            HttpPost post = new HttpPost(urlstr);
+
+            post.setEntity(se);
+            post.setHeader("Accept", "application/json");
+            post.setHeader("Content-type", "application/json");
 
             // get response
-            HttpResponse response = client.execute(get);                
+            HttpResponse response = client.execute(post);                
             // Examine the response status
                 Log.d("Fingerprinter",response.getStatusLine().toString());
 
@@ -286,29 +299,11 @@ public class Fingerprinter implements Runnable
             if(jobj.has("code"))
               Log.d("Fingerprinter", "Response code:" + jobj.getInt("code") + " (" + this.messageForCode(jobj.getInt("code")) + ")");
 
-            if(jobj.has("match"))
+            if(jobj.getBoolean("success"))
             {
-              if(jobj.getBoolean("match"))
+              if(jobj.has("match"))
               {
-                Hashtable<String, String> match = new Hashtable<String, String>();
-                match.put(SCORE_KEY, jobj.getDouble(SCORE_KEY) + "");
-                match.put(TRACK_ID_KEY, jobj.getString(TRACK_ID_KEY));
-
-                // the metadata dictionary IS NOT included by default in the API demo server
-                // replace line 66/67 in API.py with:
-                // return json.dumps({"ok":True,"message":response.message(), "match":response.match(), "score":response.score, \
-                          // "qtime":response.qtime, "track_id":response.TRID, "total_time":response.total_time, "metadata":response.metadata})
-                if(jobj.has("metadata"))
-                {
-                  JSONObject metadata = jobj.getJSONObject("metadata");
-
-                  if(metadata.has(SCORE_KEY)) match.put(META_SCORE_KEY, metadata.getDouble(SCORE_KEY) + "");
-                  if(metadata.has(TITLE_KEY)) match.put(TITLE_KEY, metadata.getString(TITLE_KEY));
-                  if(metadata.has(ARTIST_KEY)) match.put(ARTIST_KEY, metadata.getString(ARTIST_KEY));
-                  if(metadata.has(ALBUM_KEY)) match.put(ALBUM_KEY, metadata.getString(ALBUM_KEY));
-                }
-
-                didFindMatchForCode(match, code);
+                didFindMatchForCode(jobj.getJSONObject("match"), code);
               }
               else
                 didNotFindMatchForCode(code);           
@@ -496,7 +491,7 @@ public class Fingerprinter implements Runnable
       listener.didGenerateFingerprintCode(code);
   }
 
-  private void didFindMatchForCode(final Hashtable<String, String> table, final String code)
+  private void didFindMatchForCode(final JSONObject table, final String code)
   {
     if(listener == null)
       return;
@@ -595,7 +590,7 @@ public class Fingerprinter implements Runnable
      * @param table a hashtable with the metadata returned from the server
      * @param code the submited fingerprint code
      */
-    public void didFindMatchForCode(Hashtable<String, String> table, String code);
+    public void didFindMatchForCode(JSONObject table, String code);
 
     /**
      * Called if the server DOES NOT find a match for the submitted fingerprint code
