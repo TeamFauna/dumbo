@@ -27,6 +27,7 @@
 package fauna.dumbo.test;
 
 import java.util.Hashtable;
+import org.json.JSONObject;
 
 import android.app.Activity;
 import android.os.Bundle;
@@ -83,8 +84,8 @@ public class TestFingerprinter extends Activity implements AudioFingerprinterLis
   {         
     btn.setText("Start");
     
-    if(!resolved)
-      status.setText("Idle...");
+    //if(!resolved)
+      //status.setText("Idle...");
     
     recording = false;
   }
@@ -105,25 +106,33 @@ public class TestFingerprinter extends Activity implements AudioFingerprinterLis
 
   public void didGenerateFingerprintCode(String code) 
   {
-    status.setText("Will fetch info for code starting:\n" + code.substring(0, Math.min(50, code.length())));
+    //status.setText("Will fetch info for code starting:\n" + code.substring(0, Math.min(50, code.length())));
   }
 
-  public void didFindMatchForCode(final Hashtable<String, String> table,
+  public void didFindMatchForCode(final JSONObject response,
       String code) 
   {
     resolved = true;
-    status.setText("Match: \n" + table);
+    JSONObject offset;
+    try {
+      offset = response.getJSONObject("offset");
+    }
+    catch (Exception e)
+    {
+      throw new RuntimeException(e);  
+    }
+    status.setText("Offset: \n" + offset.toString() + "\nMatch: \n" + response.toString() + " Code \n" + code);
   }
 
   public void didNotFindMatchForCode(String code) 
   {
     resolved = true;
-    status.setText("No match for code starting with: \n" + code.substring(0, Math.min(50, code.length())));
+    //status.setText("No match for code starting with: \n" + code.substring(0, Math.min(50, code.length())));
   }
 
   public void didFailWithException(Exception e) 
   {
     resolved = true;
-    status.setText("Error: " + e);
+    //status.setText("Error: " + e);
   }
 }

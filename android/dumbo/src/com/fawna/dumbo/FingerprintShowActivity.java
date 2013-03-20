@@ -16,8 +16,13 @@ import android.view.View;
 
 import java.util.Timer;
 import java.util.TimerTask;
+import fauna.dumbo.Fingerprinter;
+import fauna.dumbo.Fingerprinter.AudioFingerprinterListener;
 
-public class FingerprintShowActivity extends Activity {
+public class FingerprintShowActivity extends Activity 
+{
+  boolean recording, resolved;
+  FingerprintListener fingerprinter;
 
   /**
    * Called when the activity is first created.
@@ -39,6 +44,9 @@ public class FingerprintShowActivity extends Activity {
               frameAnimation.start();
               img.setVisibility(View.VISIBLE);
 
+              fingerprinter = new FingerprintListener(FingerprintShowActivity.this);
+              
+              /*Old automatic code
               Timer t = new Timer();
               t.schedule(new TimerTask() {
                   @Override
@@ -47,6 +55,8 @@ public class FingerprintShowActivity extends Activity {
                       startActivity(intent);
                   }
               }, 50);
+            }*/
+
           }
       });
   }
@@ -68,4 +78,11 @@ public class FingerprintShowActivity extends Activity {
       cover.getLayoutParams().width = intendedWidth;
       cover.getLayoutParams().height = newHeight;
   }
+
+  public void didFindMatchForCode(MovieInfo table) 
+  {
+    Intent intent = new Intent(FingerprintShowActivity.this, CardsActivity.class);
+    startActivity(intent);
+  }
+
 }
