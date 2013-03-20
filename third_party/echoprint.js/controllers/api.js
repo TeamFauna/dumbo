@@ -1,11 +1,13 @@
 var urlParser = require('url');
 var log = require('winston');
 var fingerprinter = require('./fingerprinter');
+var database = require('../models/mysql.js');
 var server = require('../server');
 var config = require('../config');
 
 exports.query = query;
 exports.insert = insert;
+exports.list = list;
 
 /**
  * Querying for the closest matching movie.
@@ -82,6 +84,19 @@ function insert(req, res) {
     });
   });
 };
+
+/**
+ * Lists all movies in the database.
+ */
+function list(req, res) {
+  database.getMovies(function(err, movies) {
+    var result = {
+      success: true,
+      movies: movies
+    };
+    return server.respond(req, res, 200, result);
+  });
+}
 
 function isValidCode(codes) {
   return codes && codes.string && codes.version && !isNaN(parseInt(codes.length, 10));
