@@ -11,10 +11,10 @@ Generates movie metadata in the following format:
     { name: "", imdb_url: "", pic_url: "" }
   ],
   role_events: [
-    { blurb: "", role: 0, timestamp: 324234 }
+    { blurb: "", role: 0, time_stamp: 324234 }
   ],
   plot_events: [
-    { plot: "", timestamp: 0 }
+    { plot: "", time_stamp: 0 }
   ]
 }
 """
@@ -45,7 +45,7 @@ def generateMetadata(path):
         if timestamp < 0:
           if DEBUG: print 'ERROR', "couldn't find line \"%s\" said by %s" %(line, character)
         else:
-          roleEvents.append({ "blurb": line, "role": getCharacterIndex_(character), "timestamp": timestamp })
+          roleEvents.append({ "blurb": line, "role": getCharacterIndex_(character), "time_stamp": timestamp })
     return roleEvents
 
   def getCharacterIndex_(character):
@@ -79,7 +79,7 @@ def generateMetadata(path):
     plotEvents = []
     for trivia in manual.trivia:
       plotEvents.append({
-          'timestamp': lineTimestamper.timestamp(trivia['line']),
+          'time_stamp': lineTimestamper.timestamp(trivia['line']),
           'plot': trivia['trivia']
       })
     return plotEvents
