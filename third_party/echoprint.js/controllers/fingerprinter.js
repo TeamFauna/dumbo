@@ -237,7 +237,7 @@ function getCodesToTimes(match, slop) {
  * account.
  */
 function getActualScore(fp, match, slop) {
-  var MAX_DIST = 32767;
+  var MAX_DIST = Infinity;
   
   if (match.codes.length < config.code_threshold) {
     return 0;
