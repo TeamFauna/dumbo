@@ -8,7 +8,7 @@ Generates movie metadata in the following format:
     { name: "", actor: 0, imdb_url: ""}
   ],
   actors: [
-    { name: "", imdb_url: "", pic_url: "" }
+    { name: "", imdb_url: "", picture_url: "" }
   ],
   role_events: [
     { blurb: "", role: 0, time_stamp: 324234 }
@@ -33,7 +33,7 @@ def generateMetadata(path):
     actors = []
     for actor in actorInfo.keys():
       info = actorInfo[actor]
-      actors.append({ "name": actor, "imdb_url": info['actorURL'], "pic_url": info['picURL'] })
+      actors.append({ "name": actor, "imdb_url": info['actorURL'], "picture_url": info['picURL'] })
     return actors
 
   def getRoleEvents():

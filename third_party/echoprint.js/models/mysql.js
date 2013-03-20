@@ -245,11 +245,12 @@ function insertPlotEvents(movie_id, plot_events, callback) {
 
 function insertActors(actors, callback) {
   var sql = 'INSERT INTO actors ' +
-    '(name, imdb_url) VALUES (?, ?)';
+    '(name, imdb_url, picture_url) VALUES (?, ?, ?)';
 
   var values = [];
   for (var i = 0; i < actors.length; i++) {
-    values.push([actors[i].name, actors[i].imdb_url]);
+    var actor = actors[i];
+    values.push([actor.name, actor.imdb_url, actor.picture_url]);
   }
 
   insertMultipleRows(sql, values, callback);

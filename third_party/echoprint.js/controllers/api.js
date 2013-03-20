@@ -9,6 +9,7 @@ exports.query = query;
 exports.insert = insert;
 exports.list = list;
 exports.update = update;
+exports.get = get;
 
 /**
  * Querying for the closest matching movie.
@@ -121,6 +122,32 @@ function list(req, res) {
       movies: movies
     };
     return server.respond(req, res, 200, result);
+  });
+}
+
+/**
+ * Get a movie and all events from the database.
+ */
+function get(req, res) {
+  var movie = req.body;
+  var id = parseInt(movie.id, 10);
+
+  database.getMovie(id, function(err, movie) {
+    if (err) {
+      return server.respond(req, res, 500, 'Error metching metadata: ' + err);
+    }
+    
+    var match = {};
+    match.metadata = movie;
+
+    database.getEvents(id, function(err, events) {
+      if (err) {
+        return server.respond(req, res, 500, 'Error metching metadata: ' + err);
+      }
+
+      match.metadata.events = events;
+      server.respond(req, res, 200, { success: true, match: match });
+    });
   });
 }
 
