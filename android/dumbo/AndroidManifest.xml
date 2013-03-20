@@ -17,5 +17,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".CardsActivity"/>
+
     </application>
+    <uses-permission android:name="android.permission.INTERNET" />
 </manifest>

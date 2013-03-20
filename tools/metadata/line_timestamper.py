@@ -6,11 +6,11 @@ import re
 
 DEBUG = False
 
-class PhraseTimestampLookup:
-  def loadSubtitles(self, filePath):
-    self.subs = open(filePath, 'r').read().lower()
+class LineTimestamper:
+  def __init__(self, subtitlesPath):
+    self.subs = open(subtitlesPath, 'r').read().lower()
 
-  def getTimestamp(self, phrase):
+  def timestamp(self, phrase):
     for matchIndex in self.findPotentialMatches_(phrase.lower()):
       if matchIndex > 0:
         return self.getTimestampForIndex_(matchIndex)

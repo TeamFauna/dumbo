@@ -35,7 +35,12 @@ function init() {
 
     req.on('end', function() {
       if (body.length > 0) {
-        req.body = JSON.parse(body);
+        try {
+          req.body = JSON.parse(body);
+        } catch(e) {
+          return respond(req, res, 500, { error: 'Request body was not JSON: ' + e});
+          req.body = {};
+        }
       }
 
       if (path[1] == 'query') {
