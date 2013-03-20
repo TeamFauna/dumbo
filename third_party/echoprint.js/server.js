@@ -47,6 +47,8 @@ function init() {
         api.query(req, res);
       } else if (path[1] == 'insert') {
         api.insert(req, res);
+      } else if (path[1] == 'list') {
+        api.list(req, res);
       } else {
         respond(req, res, 404, { error: 'Invalid API endpoint' });
       }

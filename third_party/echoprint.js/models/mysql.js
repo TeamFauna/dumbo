@@ -10,6 +10,7 @@ var config = require('../config');
 
 exports.query = query;
 exports.getMovie = getMovie;
+exports.getMovies = getMovies;
 exports.getEvents = getEvents;
 exports.insertMovie = insertMovie;
 exports.insertCodes = insertCodes;
@@ -93,12 +94,23 @@ function getMovie(movieID, callback) {
   });
 }
 
+function getMovies(callback) {
+  var sql = 'SELECT m.id, m.code_version, m.name, m.imdb_url, ' +
+    'm.length, m.import_date, count(c.movie_id) as codes ' +
+    'FROM movies m, codes c ' +
+    'WHERE m.id = c.movie_id ' +
+    'GROUP BY c.movie_id';
+  client.query(sql, [], function(err, movies) {
+    callback(err, movies);
+  });
+}
+
 function getEvents(movie_id, callback) {
   var events = [];
 
   var sql =
     'SELECT re.time_stamp, re.blurb, r.name as role, r.imdb_url as role_imdb, ' +
-      'a.name as actor, a.imdb_url as actor_imdb ' +
+      'a.name as actor, a.imdb_url as actor_imdb, a.picture_url as picture_url ' +
       'FROM role_events re, roles r, actors a ' +
       'WHERE re.movie = ? AND re.role = r.id AND r.actor = a.id ';
   client.query(sql, [movie_id], function(err, role_events) {
@@ -117,7 +129,8 @@ function getEvents(movie_id, callback) {
         },
         actor: {
           name: role_event.actor,
-          imdb_url: role_event.actor_imdb
+          imdb_url: role_event.actor_imdb,
+          picture_url: role_event.picture_url
         }
       });
     }
