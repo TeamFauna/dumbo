@@ -38,6 +38,9 @@
                       android:gravity="center_vertical"
                       android:layout_marginLeft="10dp"
                       android:id="@+id/current_time"
+                      android:textStyle="bold"
+                      android:textSize="20dp"
+                      android:textColor="#E33"
                       android:layout_alignParentLeft="true"/>
             <TextView android:layout_width="wrap_content"
                       android:layout_height="fill_parent"

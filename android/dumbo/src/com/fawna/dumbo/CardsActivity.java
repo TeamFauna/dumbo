@@ -11,6 +11,7 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.text.method.DateTimeKeyListener;
 import android.util.Log;
 import android.view.Display;
 import android.view.View;
@@ -19,17 +20,37 @@ import android.widget.*;
 
 import java.io.InputStream;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
+import java.text.DateFormat;
+import java.util.*;
 
 public class CardsActivity extends ListActivity {
+
+  private Timer timer;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.cardsview);
+    timer = new Timer();
     CardsAdapter adapter = new CardsAdapter();
     setListAdapter(adapter);
+
+    final long time = System.currentTimeMillis();
+    // update the clock
+    timer.schedule(new TimerTask() {
+      @Override
+      public void run() {
+        runOnUiThread(new Runnable() {
+          @Override
+          public void run() {
+            final TextView currentTime = (TextView) findViewById(R.id.current_time);
+            long current = (System.currentTimeMillis() - time) / 1000;
+            currentTime.setText("" + String.format("%d", current / 60) + ":" + String.format("%02d", current % 60));
+          }
+        });
+      }
+    }, 1000, 1000);
+
   }
 
   private void layoutCover(View headerView) {
@@ -85,7 +106,7 @@ public class CardsActivity extends ListActivity {
   private View generateHeader(final String imdbUrl) {
 
     // is this himym?
-    final boolean isHIMYM = "http://www.imdb.com/title/tt1777828/".equals(imdbUrl);
+    final boolean isHIMYM = imdbUrl.contains("tt1777828");
 
     // generate the header
     View headerView = getLayoutInflater().inflate(R.layout.show_header, null);
@@ -240,6 +261,9 @@ public class CardsActivity extends ListActivity {
     }
   }
 
-
-
+  @Override
+  public void onDestroy() {
+    timer.cancel();
+    timer.purge();
+  }
 }
