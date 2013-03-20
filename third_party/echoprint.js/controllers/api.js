@@ -8,6 +8,7 @@ var config = require('../config');
 exports.query = query;
 exports.insert = insert;
 exports.list = list;
+exports.update = update;
 
 /**
  * Querying for the closest matching movie.
@@ -68,7 +69,7 @@ function insert(req, res) {
       log.error('Failed to decode codes for insert: ' + err);
       return server.respond(req, res, 500, { error: 'Invalid code' });
     }
-    
+
     fingerprinter.insert(movie, fingerprint, function(err, result) {
       if (err) {
         log.error('Failed to insert movie: ' + err);
@@ -84,6 +85,31 @@ function insert(req, res) {
     });
   });
 };
+
+/**
+ * Updates metadata for a movie.
+ */
+function update(req, res) {
+  var movie = req.body;
+
+  var id = parseInt(movie.id, 10);
+  if (!(id > 0)) {
+    return server.respond(req, res, 500, { error: 'Invalid movie id: ' + id });
+  }
+
+  database.updateMovie(id, movie, function(err, result) {
+    if (err) {
+      log.error('Failed to update movie: ' + err);
+      return server.respond(req, res, 500, { error: 'Update failed' });
+    }
+
+    var duration = new Date() - req.start;
+    log.debug('Updated movie in ' + duration + 'ms. movie.id=' + id);
+    result.success = true;
+    return server.respond(req, res, 200, result);
+  });
+    
+}
 
 /**
  * Lists all movies in the database.

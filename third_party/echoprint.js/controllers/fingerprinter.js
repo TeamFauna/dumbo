@@ -1,6 +1,6 @@
 var zlib = require('zlib');
 var log = require('winston');
-var Mutex = require('../mutex');
+var gMutex = require('../mutex');
 var config = require('../config');
 var database = require('../models/mysql');
 
@@ -15,9 +15,6 @@ var MATCH_SLOP = 2;
 exports.decodeCodeString = decodeCodeString;
 exports.query = query;
 exports.insert = insert;
-
-// Globals
-var gMutex = Mutex.getMutex();
 
 /**
  * Takes a base64 encoded representation of a zlib-compressed code string
@@ -340,6 +337,7 @@ function insert(movie, fp, callback) {
       }
 
       if (res.success) {
+        console.log(res);
       } else {
         database.insertMovie(movie, function(err, movie_id) {
           if (err) {

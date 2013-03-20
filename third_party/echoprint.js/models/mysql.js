@@ -7,6 +7,8 @@ var fs = require('fs');
 var mysql = require('mysql');
 var temp = require('temp');
 var config = require('../config');
+var gMutex = require('../mutex');
+var log = require('winston');
 
 exports.query = query;
 exports.getMovie = getMovie;
@@ -18,6 +20,7 @@ exports.insertPlotEvents = insertPlotEvents;
 exports.insertActors = insertActors;
 exports.insertRoles = insertRoles;
 exports.insertRoleEvents = insertRoleEvents;
+exports.updateMovie = updateMovie;
 exports.disconnect = disconnect;
                 
 
@@ -303,6 +306,83 @@ function insertMultipleRows(sql, rows, callback) {
     if (counter == ids.length) {
       callback(error, ids);
     }
+  }
+}
+
+function updateMovie(id, movie, callback) {
+  var sql = 'UPDATE movies SET name=?, imdb_url=?, length=? WHERE id=?';
+  gMutex.lock(function() {
+    client.query(sql, [movie.name, movie.imdb_url, movie.length, id], function(err, info) {
+      if (err) {
+        return error(err);
+      }
+
+      if (movie.plot_events && movie.plot_events.length > 0) {
+        insertPlotEvents(id, movie.plot_events, function(err, plot_event_ids) {
+          if (err) {
+            log.error('Error adding plot events: ' + err);
+          }
+        });
+      }
+
+      if (movie.actors && movie.actors.length > 0) {
+        insertActors(movie.actors, function(err, actor_ids) {
+          if (err) {
+            return error('Error addings actors: ' + err);
+          }
+
+          if (movie.roles && movie.roles.length > 0) {
+            for (var i = 0; i < movie.roles.length; i++) {
+              var role = movie.roles[i];
+              role.actor_id = actor_ids[role.actor];
+            }
+
+            insertRoles(movie.roles, function(err, role_ids) {
+              if (err) {
+                return error('Error inserting roles: ' + err);
+              }
+
+              var new_events = [];
+              if (movie.role_events && movie.role_events.length > 0) {
+                for (var i = 0; i < movie.role_events.length; i++) {
+                  var role_event = movie.role_events[i];
+                  if (role_event.role >= 0) {
+                    role_event.role_id = role_ids[role_event.role];
+                    new_events.push(role_event);
+                  }
+                }
+
+                insertRoleEvents(id, new_events, function(err) {
+                  if (err) {
+                    return error('Error inserting role events: ' + err);
+                  }
+
+                  return success();
+                });
+              } else {
+                return success();
+              }
+            });
+          } else {
+            return success();
+          }
+        });
+      } else {
+        return success();
+      }
+    });
+  });
+
+  function error(error_string) {
+    gMutex.release();
+    log.error(error_string);
+    callback(error_string, null);
+  }
+
+  function success() {
+    gMutex.release();
+    log.info('Updated movie: ' + movie.name + ' (' + id + ')');
+    callback(null, {});
   }
 }
 
