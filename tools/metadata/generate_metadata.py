@@ -107,5 +107,5 @@ def generateMetadata(path):
 
 
 if __name__ == "__main__":
-  generateMetadata('lotr_1ex')
-  #generateMetadata('himym_s6e10')
+  #generateMetadata('lotr_1ex')
+  generateMetadata('himym_s6e10')
