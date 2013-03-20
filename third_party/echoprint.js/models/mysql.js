@@ -125,6 +125,7 @@ function getEvents(movie_id, callback) {
       var role_event = role_events[i];
       events.push({
         time_stamp: role_event.time_stamp,
+        type: 'ROLE',
         text: role_event.blurb,
         role: {
           name: role_event.role,
@@ -148,6 +149,7 @@ function getEvents(movie_id, callback) {
         var plot_event = plot_events[i];
         events.push({
           time_stamp: plot_event.time_stamp,
+          type: 'PLOT',
           text: plot_event.plot
         });
       }
