@@ -53,7 +53,7 @@ function query(fp, rows, callback) {
       movie_ids[i] = movie_id;
       movie_id_map[movie_id] = i;
     }
-    var movie_id_string = movie_ids.join('","');
+    var movie_id_string = movie_ids.join(',');
     
     // Get all of the matching codes and their offsets for the top N matching
     // movies
