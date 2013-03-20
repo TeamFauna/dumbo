@@ -104,5 +104,5 @@ if __name__ == "__main__":
   himymTranscript = 'data/HIMYM_S6E10_transcript.txt'
   himymCastFile = 'data/HIMYM_S6E10_cast.txt'
 
-  generateMetadata(lotrSubs, lotrTranscript, lotrCastFile)
-  #generateMetadata(himymSubs, himymTranscript, himymCastFile)
+  #generateMetadata(lotrSubs, lotrTranscript, lotrCastFile)
+  generateMetadata(himymSubs, himymTranscript, himymCastFile)
