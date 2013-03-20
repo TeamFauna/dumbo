@@ -20,13 +20,14 @@ Generates movie metadata in the following format:
 """
 import json
 import re
+import imp
 from line_parser import LineParser
 from line_timestamper import LineTimestamper
 from imdb_parser import IMDBParser
 
 DEBUG = False;
 
-def generateMetadata(subtitlePath, transcriptPath, imdbInfo):
+def generateMetadata(path):
 
   def getActors():
     actors = []
@@ -51,8 +52,7 @@ def generateMetadata(subtitlePath, transcriptPath, imdbInfo):
     for (actorIndex, actor) in enumerate(actorInfo.keys()):
       if looselyMatches_(actorInfo[actor]['role'], character):
         return actorIndex
-    if DEBUG:
-      print 'ERROR', 'character', character, 'not found on IMDB'
+    if DEBUG: print 'ERROR', 'character', character, 'not found on IMDB'
     return -1
 
   stopList = ['the', 'of', 'mr', 'ms', 'mrs', 'in', 'on']
@@ -76,19 +76,30 @@ def generateMetadata(subtitlePath, transcriptPath, imdbInfo):
     return characters
 
   def getPlotEvents():
-    return []
+    plotEvents = []
+    for trivia in manual.trivia:
+      plotEvents.append({
+          'timestamp': lineTimestamper.timestamp(trivia['line']),
+          'plot': trivia['trivia']
+      })
+    return plotEvents
 
   def printJson():
     print json.dumps({
-        "imdb_url": "URL",
-        "name": 'NAME',
+        "imdb_url": manual.url,
+        "name": manual.name,
         "roles": getRoles(),
         "actors": getActors(),
         "role_events": getRoleEvents(),
         "plot_events": getPlotEvents()
     }, ensure_ascii=False)
 
-  characterLines = LineParser(transcriptPath, subtitlePath).getLines()
+  manual = imp.load_source('manual', './data/' + path + '/manual.py')
+  subtitlePath = 'data/' + path + '/subs.srt'
+  transcriptPath = 'data/' + path + '/transcript.txt'
+  imdbInfo = 'data/' + path + '/cast.html'
+
+  characterLines = LineParser(transcriptPath, path).getLines()
   lineTimestamper = LineTimestamper(subtitlePath)
   actorInfo = IMDBParser(imdbInfo).getActorInfo()
 
@@ -96,13 +107,5 @@ def generateMetadata(subtitlePath, transcriptPath, imdbInfo):
 
 
 if __name__ == "__main__":
-  lotrSubs = 'data/TLOTR.The.Fellowship.of.the.Ring.2001.Extended.BluRay.1080p.DTSES6.1.2Audio.x264-CHD.srt'
-  lotrTranscript = 'data/LOTR_1ex_transcript.txt'
-  lotrCastFile = 'data/LOTR_1ex_cast.html'
-
-  himymSubs = 'data/How I Met Your Mother - 6x10 - Blitzgiving.HDTV.LOL.en.srt'
-  himymTranscript = 'data/HIMYM_S6E10_transcript.txt'
-  himymCastFile = 'data/HIMYM_S6E10_cast.txt'
-
-  #generateMetadata(lotrSubs, lotrTranscript, lotrCastFile)
-  generateMetadata(himymSubs, himymTranscript, himymCastFile)
+  generateMetadata('lotr_1ex')
+  #generateMetadata('himym_s6e10')
