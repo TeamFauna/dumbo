@@ -51,6 +51,16 @@ public class FingerprintShowActivity extends Activity
       });
   }
 
+  @Override
+  public void onStart() {
+      super.onStart();
+
+      final Button button = (Button)findViewById(R.id.button_identify);
+      button.setText(R.string.identify_button_text);
+      ImageView img = (ImageView)findViewById(R.id.mic_animation);
+      img.setVisibility(View.INVISIBLE);
+  }
+
   private void layoutCover() {
       Display display = getWindowManager().getDefaultDisplay();
       int screenWidth = display.getWidth();

@@ -155,7 +155,7 @@ public class CardsActivity extends ListActivity {
       totalTime.setText("of 22:45");
 
       TextView episode = (TextView) statusBar.findViewById(R.id.episode);
-      episode.setText("Season 6 ep 10");
+      episode.setText("Se. 6 Ep. 10");
     }
   }
 
@@ -173,7 +173,7 @@ public class CardsActivity extends ListActivity {
       coverPhoto.setImageResource(R.drawable.himym_cover);
 
       TextView title = (TextView) headerView.findViewById(R.id.show_title);
-      title.setText("How I met your Mother");
+      title.setText("How I Met Your Mother");
     }
 
     TextView tv = (TextView) headerView.findViewById(R.id.show_title);
