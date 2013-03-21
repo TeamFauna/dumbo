@@ -161,7 +161,7 @@ function query(codes, fingerprint, callback) {
     var origTopScore = matches[0].ascore;
     
     // Sort by the new adjusted score
-    matches.sort(function(a, b) { return b.ascore - a.score; });
+    matches.sort(function(a, b) { return b.ascore - a.ascore; });
     
     var topMatch = matches[0];
     var newTopScore = topMatch.ascore;

@@ -38,6 +38,11 @@ function query(req, res) {
         log.warn('Failed to complete query: ' + err);
         return server.respond(req, res, 500, { error: 'Lookup failed' });
       }
+
+      if (!result.match) {
+        log.debug('Query failed: ' + result.status);
+        return server.respond(req, res, 200, { success: false, status: result.status });
+      }
       
       database.getMovie(result.match.movie_id, function(err, movie) {
         if (err) {
