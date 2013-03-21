@@ -40,11 +40,11 @@ public class FingerprintShowActivity extends Activity
               frameAnimation.start();
               img.setVisibility(View.VISIBLE);
 
-            //Intent intent = new Intent(FingerprintShowActivity.this, CardsActivity.class);
-            //intent.putExtra("imdb", "http://www.imdb.com/title/tt1777828/");
-            //startActivity(intent);
+            Intent intent = new Intent(FingerprintShowActivity.this, CardsActivity.class);
+            intent.putExtra("imdb", "http://www.imdb.com/title/tt1777828/");
+            startActivity(intent);
 
-              fingerprinter.startFingerprinting();
+             // fingerprinter.startFingerprinting();
               
               /*Old automatic code
               Timer t = new Timer();

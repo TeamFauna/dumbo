@@ -23,26 +23,32 @@ import java.util.*;
 public class CardsActivity extends ListActivity {
 
   private Timer timer;
+  public static MovieInfo movieInfo = null;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.cardsview);
 
-    String imdb = getIntent().getStringExtra("imdb");
+    timer = new Timer();
+
+    if (movieInfo == null) {
+      Toast.makeText(this, "No Movie Info loaded into CardsActivity, aborting!", 5000).show();
+      finish();
+      return;
+    }
 
     // test data with HIMYM
     //headerView = generateHeader("http://www.imdb.com/title/tt1777828/");
-    View headerView = generateHeader(imdb);
-    populateStatusBar(findViewById(R.id.fixed_header), imdb);
+    View headerView = generateHeader(movieInfo.imdb);
+    populateStatusBar(findViewById(R.id.fixed_header));
     getListView().addHeaderView(headerView);
 
-    timer = new Timer();
-    CardsAdapter adapter = new CardsAdapter(imdb);
+    CardsAdapter adapter = new CardsAdapter();
     setListAdapter(adapter);
 
 
-    scheduleClock((TextView) findViewById(R.id.current_time), System.currentTimeMillis());
+    scheduleClock((TextView) findViewById(R.id.current_time), movieInfo.time * 1000);
 
 
     final View header = findViewById(R.id.fixed_header);
@@ -135,8 +141,8 @@ public class CardsActivity extends ListActivity {
     return plotView;
   }
 
-  private void populateStatusBar(final View statusBar, final String imdbUrl) {
-    final boolean isHIMYM = imdbUrl.contains("tt1777828");
+  private void populateStatusBar(final View statusBar) {
+    final boolean isHIMYM = movieInfo.imdb.contains("tt1777828");
 
     // create the imdb button handler
     ImageButton imdbButton = (ImageButton) statusBar.findViewById(R.id.imdb_button);
@@ -190,21 +196,29 @@ public class CardsActivity extends ListActivity {
     private View statusBar;
     final static int EXTRA_VIEWS = 2;
 
-    public CardsAdapter(String imdbUrl) {
+    public CardsAdapter() {
       statusBar = getLayoutInflater().inflate(R.layout.status_bar, null);
-      populateStatusBar(statusBar, imdbUrl);
+      populateStatusBar(statusBar);
 
-      scheduleClock((TextView) statusBar.findViewById(R.id.current_time), System.currentTimeMillis());
+      scheduleClock((TextView) statusBar.findViewById(R.id.current_time), movieInfo.time * 1000);
 
 
       cards = new ArrayList<View>();
-      View actor1 = generateActorCard("Josh Radnor", "http://ia.media-imdb.com/images/M/MV5BMjAwNTUxMTM4OF5BMl5BanBnXkFtZTcwNjUyNzc4Mg@@._V1._SY314_CR3,0,214,314_.jpg", "http://www.imdb.com/name/nm1102140/");
-      View actor2 = generateActorCard("Jason Segel", "http://ia.media-imdb.com/images/M/MV5BMTI2NTQ4MTM1MV5BMl5BanBnXkFtZTcwODEzNzQ4Mg@@._V1._SX214_CR0,0,214,314_.jpg", "http://www.imdb.com/name/nm0781981/");
-      View description = generatePlotCard("Blitzgiving", "When Ted leaves the bar early to prepare a Thanksgiving feast for his friends, the gang winds up partying all night with The Blitz, an old friend from college who has bad luck. As a result, Ted is forced to spend Thanksgiving with Zoey.");
 
-      cards.add(description);
-      cards.add(actor1);
-      cards.add(actor2);
+      for (MovieEvent event: movieInfo.events) {
+         if (event.type == MovieEvent.TYPE_PLOT) {
+
+         }
+      }
+
+      //test cards
+      //View actor1 = generateActorCard("Josh Radnor", "http://ia.media-imdb.com/images/M/MV5BMjAwNTUxMTM4OF5BMl5BanBnXkFtZTcwNjUyNzc4Mg@@._V1._SY314_CR3,0,214,314_.jpg", "http://www.imdb.com/name/nm1102140/");
+      //View actor2 = generateActorCard("Jason Segel", "http://ia.media-imdb.com/images/M/MV5BMTI2NTQ4MTM1MV5BMl5BanBnXkFtZTcwODEzNzQ4Mg@@._V1._SX214_CR0,0,214,314_.jpg", "http://www.imdb.com/name/nm0781981/");
+      //View description = generatePlotCard("Blitzgiving", "When Ted leaves the bar early to prepare a Thanksgiving feast for his friends, the gang winds up partying all night with The Blitz, an old friend from college who has bad luck. As a result, Ted is forced to spend Thanksgiving with Zoey.");
+
+      //cards.add(description);
+      //cards.add(actor1);
+      //cards.add(actor2);
     }
 
     @Override
