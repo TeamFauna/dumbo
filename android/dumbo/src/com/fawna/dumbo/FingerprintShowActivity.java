@@ -81,6 +81,7 @@ public class FingerprintShowActivity extends Activity
 
   public void didFindMatchForCode(MovieInfo table) 
   {
+    CardsActivity.movieInfo = table;
     Intent intent = new Intent(FingerprintShowActivity.this, CardsActivity.class);
     intent.putExtra("imdb", table.imdb);
     startActivity(intent);
