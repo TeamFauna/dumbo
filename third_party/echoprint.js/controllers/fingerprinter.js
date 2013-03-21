@@ -7,7 +7,7 @@ var database = require('../models/mysql');
 var CHARACTERS = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 var SECONDS_TO_TIMESTAMP = 43.45;
 var MAX_ROWS = 30;
-var MIN_MATCH_PERCENT = 0.1;
+var MIN_MATCH_PERCENT = 0.05;
 var MATCH_SLOP = 2;
 
 // Exports
