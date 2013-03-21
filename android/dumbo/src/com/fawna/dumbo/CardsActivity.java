@@ -158,9 +158,6 @@ public class CardsActivity extends ListActivity {
     final static int EXTRA_VIEWS = 2;
 
     public CardsAdapter(String imdbUrl) {
-
-      // test data with HIMYM
-      //headerView = generateHeader("http://www.imdb.com/title/tt1777828/");
       headerView = generateHeader(imdbUrl);
 
       cards = new ArrayList<View>();
@@ -269,6 +266,8 @@ public class CardsActivity extends ListActivity {
 
   @Override
   public void onDestroy() {
+    super.onDestroy();
+
     timer.cancel();
     timer.purge();
   }
