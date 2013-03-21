@@ -16,7 +16,7 @@ import android.view.View;
 
 public class FingerprintShowActivity extends Activity 
 {
-    Boolean DEBUG = true;
+    Boolean DEBUG = false;
 
     FingerprintListener fingerprinter;
 

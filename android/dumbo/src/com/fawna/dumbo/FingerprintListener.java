@@ -1,5 +1,7 @@
 package com.fawna.dumbo;
 
+import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
@@ -15,27 +17,89 @@ import org.json.JSONObject;
 import android.app.Activity;
 import fauna.dumbo.Fingerprinter;
 import fauna.dumbo.Fingerprinter.AudioFingerprinterListener;
+import android.util.Log;
 
 public class FingerprintListener implements AudioFingerprinterListener
 {
   boolean recording, resolved;
   Fingerprinter fingerprinter;
   FingerprintShowActivity act;
+  boolean DEBUG = true;
 
   public FingerprintListener(FingerprintShowActivity acti) {
     act = acti;
   }
 
   public void startFingerprinting() { 
-    if(recording)
-    {
-      fingerprinter.stop();             
+    Log.d("Fingerprinter","STARTING");
+    if (!DEBUG) { 
+      if(recording)
+      {
+        fingerprinter.stop();             
+      }
+      else
+      {               
+        if(fingerprinter == null)
+          fingerprinter = new Fingerprinter(FingerprintListener.this);
+        fingerprinter.fingerprint(15);
+      }
     }
-    else
-    {               
-      if(fingerprinter == null)
-        fingerprinter = new Fingerprinter(FingerprintListener.this);
-      fingerprinter.fingerprint(15);
+    else { 
+      Thread getOne = new Thread() {
+      @Override
+      public void run() { 
+        try { 
+          //Get a list of movies to use as a substitute
+          String urlstr = "http://www.willhughes.ca/echo/get";      
+          HttpClient client = new DefaultHttpClient();
+          HttpPost post = new HttpPost(urlstr);
+
+          JSONObject requestJson = new JSONObject();
+
+          requestJson.put("id", 2);
+          StringEntity se = new StringEntity(requestJson.toString());
+          post.setEntity(se);
+          post.setHeader("Accept", "application/json");
+          post.setHeader("Content-type", "application/json");
+          // get response
+          HttpResponse response = client.execute(post);                
+          // Get hold of the response entity
+          HttpEntity entity = response.getEntity();
+          // If the response does not enclose an entity, there is no need
+          // to worry about connection release
+
+          String result = "";
+          if (entity != null) 
+          {
+              // A Simple JSON Response Read
+              InputStream instream = entity.getContent();
+              result= convertStreamToString(instream);
+              // now you have the string representation of the HTML request
+              instream.close();
+          }
+          Log.d("Fingerprinter", "Result: " + result);
+          JSONObject jobj = new JSONObject(result);
+
+          if (jobj.getBoolean("success")) {
+            JSONObject match = jobj.getJSONObject("match");
+            final MovieInfo mov = new MovieInfo(match);
+            Activity activity = (Activity) act;
+            activity.runOnUiThread(new Runnable() 
+            {   
+              public void run() 
+              {
+                act.didFindMatchForCode(mov);
+              }
+            });
+          }
+        }
+        catch (Exception e) { 
+          Log.d("Fingerprinter", "Exception: " + e);
+          throw new RuntimeException(e);
+        }
+      }
+      };
+      getOne.start();
     }
   }
 
@@ -124,5 +188,33 @@ public class FingerprintListener implements AudioFingerprinterListener
   public void didFailWithException(Exception e) 
   {
     resolved = true;
+  }
+
+  private static String convertStreamToString(InputStream is) 
+  {
+      /*
+       * To convert the InputStream to String we use the BufferedReader.readLine()
+       * method. We iterate until the BufferedReader return null which means
+       * there's no more data to read. Each line will appended to a StringBuilder
+       * and returned as String.
+       */
+      BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+      StringBuilder sb = new StringBuilder();
+
+      String line = null;
+      try {
+          while ((line = reader.readLine()) != null) {
+              sb.append(line + "\n");
+          }
+      } catch (IOException e) {
+          e.printStackTrace();
+      } finally {
+          try {
+              is.close();
+          } catch (IOException e) {
+              e.printStackTrace();
+          }
+      }
+      return sb.toString();
   }
 }

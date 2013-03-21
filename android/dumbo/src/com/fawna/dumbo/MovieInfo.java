@@ -12,8 +12,13 @@ public class MovieInfo
   
   public MovieInfo(JSONObject resp) {
     try {
-      JSONObject offset = resp.getJSONObject("offset");
-      time = (int)((offset.getDouble("time") + 30));
+      if (resp.has("offset")) { 
+        JSONObject offset = resp.getJSONObject("offset");
+        time = (int)((offset.getDouble("time") + 30));
+      }
+      else { 
+        time = 0;
+      }
 
       JSONObject metadata = resp.getJSONObject("metadata");
       name = metadata.getString("name");
@@ -21,7 +26,7 @@ public class MovieInfo
 
       //TODO parse the roles
 
-      JSONArray ray = resp.getJSONArray("events");
+      JSONArray ray = metadata.getJSONArray("events");
 
       events = new ArrayList<MovieEvent>();
 
