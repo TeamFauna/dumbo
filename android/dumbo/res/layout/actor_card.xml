@@ -9,6 +9,7 @@
             android:layout_marginBottom="15dp"
             android:layout_marginLeft="15dp"
             android:layout_marginRight="15dp"
+            android:paddingBottom="15dp"
             android:background="@drawable/card_highlight">
         <ImageView android:layout_height="wrap_content"
                    android:layout_width="120dp"
@@ -43,17 +44,28 @@
         <TextView android:layout_height="wrap_content"
                   android:layout_width="wrap_content"
                   android:layout_marginRight="15dp"
-                  android:layout_marginTop="5dp"
+                  android:layout_marginTop="10dp"
                   android:layout_marginBottom="15dp"
                   android:id="@+id/episode_description"
                   android:layout_below="@id/actor_name"
                   android:layout_toRightOf="@id/actor_photo"
                   android:text="The Hobbit, Wilfred, Tron: Uprising, The Ballad of Danko Jones, The Lord of the Rings: Return of the King, The Lord of the Rings: The Two Towwers, more..."/>
-        <Button android:layout_height="wrap_content"
-                android:layout_width="wrap_content"
+        <View
+                android:layout_width="fill_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="5dp"
+                android:layout_marginRight="10dp"
+                android:background="#777777"
+                android:layout_toRightOf="@id/actor_photo"
                 android:layout_below="@id/episode_description"
+                />
+        <Button android:layout_height="21dp"
+                android:layout_width="124dp"
                 android:id="@+id/actor_imdb"
-                android:text="More..."
-                android:layout_toRightOf="@id/actor_photo" />
+                android:background="@drawable/button_learn_more"
+                android:layout_toRightOf="@id/actor_photo"
+                android:layout_below="@id/episode_description"
+                android:layout_marginTop="20dp"
+                />
     </RelativeLayout>
 </FrameLayout>

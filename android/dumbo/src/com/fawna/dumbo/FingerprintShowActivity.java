@@ -16,7 +16,9 @@ import android.view.View;
 
 public class FingerprintShowActivity extends Activity 
 {
-  FingerprintListener fingerprinter;
+    Boolean DEBUG = false;
+
+    FingerprintListener fingerprinter;
 
   /**
    * Called when the activity is first created.
@@ -40,25 +42,23 @@ public class FingerprintShowActivity extends Activity
               frameAnimation.start();
               img.setVisibility(View.VISIBLE);
 
-            Intent intent = new Intent(FingerprintShowActivity.this, CardsActivity.class);
-            intent.putExtra("imdb", "http://www.imdb.com/title/tt1777828/");
-            startActivity(intent);
-
-             // fingerprinter.startFingerprinting();
-              
-              /*Old automatic code
-              Timer t = new Timer();
-              t.schedule(new TimerTask() {
-                  @Override
-                  public void run() {
-                      Intent intent = new Intent(FingerprintShowActivity.this, CardsActivity.class);
-                      startActivity(intent);
-                  }
-              }, 50);
-            }*/
-
+              if (!DEBUG) {
+                fingerprinter.startFingerprinting();
+              } else {
+                didNotFindMatchForCode();
+              }
           }
       });
+  }
+
+  @Override
+  public void onStart() {
+      super.onStart();
+
+      final Button button = (Button)findViewById(R.id.button_identify);
+      button.setText(R.string.identify_button_text);
+      ImageView img = (ImageView)findViewById(R.id.mic_animation);
+      img.setVisibility(View.INVISIBLE);
   }
 
   private void layoutCover() {
@@ -86,10 +86,10 @@ public class FingerprintShowActivity extends Activity
     startActivity(intent);
   }
 
-  /*public void didNotFindMatchForCode() 
+  public void didNotFindMatchForCode()
   {
     Intent intent = new Intent(FingerprintShowActivity.this, CardsActivity.class);
-    //intent.putExtra("imdb", table.imdb);
+    intent.putExtra("imdb", "http://www.imdb.com/title/tt1777828/");
     startActivity(intent);
-  }*/
+  }
 }

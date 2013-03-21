@@ -7,12 +7,13 @@ var database = require('../models/mysql');
 var CHARACTERS = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 var SECONDS_TO_TIMESTAMP = 43.45;
 var MAX_ROWS = 30;
-var MIN_MATCH_PERCENT = 0.1;
+var MIN_MATCH_PERCENT = 0.05;
 var MATCH_SLOP = 2;
 
 // Exports
 exports.decodeCodeString = decodeCodeString;
 exports.query = query;
+exports.isSuccess = isSuccess;
 
 /**
  * Takes a base64 encoded representation of a zlib-compressed code string
@@ -166,7 +167,7 @@ function query(codes, fingerprint, callback) {
     var topMatch = matches[0];
     var newTopScore = topMatch.ascore;
     
-    log.debug('Actual top score is ' + newTopScore + ' at ' + match.offset.time + ' seconds in, next score is ' +
+    log.debug('Actual top score is ' + newTopScore + ' at ' + topMatch.offset.time + ' seconds in, next score is ' +
       matches[1].ascore);
     
     // If the best result actually matched fewer codes than our percentage
@@ -189,6 +190,26 @@ function query(codes, fingerprint, callback) {
       status: 'MULTIPLE_GOOD_MATCH_HISTOGRAM_DECREASED'
     });
   });
+}
+
+function isSuccess(status) {
+  var bad_results = [
+    'NO_RESULTS',
+    'NO_RESULTS_HISTOGRAM_DECREASED',
+    'SINGLE_BAD_MATCH',
+    'MULTIPLE_BAD_HISTOGRAM_MATCH'
+  ];
+
+  var good_results = [
+    'SINGLE_GOOD_MATCH_HISTOGRAM_DECREASED',
+    'MULTIPLE_GOOD_MATCH_HISTOGRAM_DECREASED'
+  ];
+
+  if (good_results.indexOf(status) >= 0) {
+    return true;
+  } else {
+    return false;
+  }
 }
 
 /**

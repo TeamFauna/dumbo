@@ -11,7 +11,7 @@
               android:layout_height="fill_parent"
               android:text="0:00"
               android:gravity="center_vertical"
-              android:layout_marginLeft="10dp"
+              android:layout_marginLeft="15dp"
               android:id="@+id/current_time"
               android:textStyle="bold"
               android:textSize="20dp"
@@ -38,9 +38,9 @@
                  android:layout_alignParentRight="true"
                  android:layout_marginRight="10dp"/>
 </RelativeLayout>
-    <View android:layout_height="5dp"
+    <View android:layout_height="4dp"
           android:layout_width="fill_parent"
           android:id="@+id/status_drop_shadow"
-          android:background="@drawable/drop_shadow"
+          android:background="#777777"
           android:visibility="gone"/>
 </LinearLayout>
