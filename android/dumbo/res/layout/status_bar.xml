@@ -1,0 +1,46 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:orientation="vertical" android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:id="@+id/fixed_header">
+<RelativeLayout
+                android:layout_width="fill_parent"
+                android:layout_height="40dp"
+                android:background="#FFF"
+                android:layout_below="@id/show_title">
+    <TextView android:layout_width="wrap_content"
+              android:layout_height="fill_parent"
+              android:text="0:00"
+              android:gravity="center_vertical"
+              android:layout_marginLeft="10dp"
+              android:id="@+id/current_time"
+              android:textStyle="bold"
+              android:textSize="20dp"
+              android:textColor="#E33"
+              android:layout_alignParentLeft="true"/>
+    <TextView android:layout_width="wrap_content"
+              android:layout_height="fill_parent"
+              android:layout_marginLeft="5dp"
+              android:id="@+id/total_time"
+              android:text="of 228:34"
+              android:gravity="center_vertical"
+              android:layout_toRightOf="@id/current_time"/>
+    <TextView android:layout_width="fill_parent"
+              android:layout_height="fill_parent"
+              android:text="1 of 3 in Series"
+              android:id="@+id/episode"
+              android:gravity="center"
+              android:layout_alignParentTop="true"/>
+    <ImageButton android:id="@+id/imdb_button"
+                 android:layout_width="wrap_content"
+                 android:layout_height="wrap_content"
+                 android:layout_centerVertical="true"
+                 android:src="@drawable/icon_imdb"
+                 android:layout_alignParentRight="true"
+                 android:layout_marginRight="10dp"/>
+</RelativeLayout>
+    <View android:layout_height="5dp"
+          android:layout_width="fill_parent"
+          android:id="@+id/status_drop_shadow"
+          android:background="@drawable/drop_shadow"
+          android:visibility="gone"/>
+</LinearLayout>

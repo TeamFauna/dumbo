@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-             android:layout_width="fill_parent"
-             android:layout_height="wrap_content"
-             >
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content">
     <ImageView
             android:id="@+id/lotr_cover"
             android:layout_width="fill_parent"
@@ -11,57 +10,10 @@
             android:src="@drawable/lotr_cover"
             android:scaleType="fitXY"
             android:layout_marginBottom="15dp"/>
-    <RelativeLayout
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            android:layout_alignParentBottom="true"
-            android:paddingBottom="25dp">
-        <TextView android:id="@+id/show_title"
-                  android:text="Lord of the Rings: The Fellowship of the Ring"
-                  style="@style/titlefont"
-                  android:layout_marginTop="50dp"
-                  android:layout_width="700dp"
-                  android:layout_centerHorizontal="true"
-                />
-        <RelativeLayout android:layout_width="fill_parent"
-                        android:layout_height="40dp"
-                        android:background="@drawable/card_no_highlight"
-                        android:layout_below="@id/show_title"
-                        android:layout_marginTop="50dp"
-                        android:layout_marginLeft="15dp"
-                        android:layout_marginRight="15dp">
-
-
-            <TextView android:layout_width="wrap_content"
-                      android:layout_height="fill_parent"
-                      android:text="0:00"
-                      android:gravity="center_vertical"
-                      android:layout_marginLeft="10dp"
-                      android:id="@+id/current_time"
-                      android:textStyle="bold"
-                      android:textSize="20dp"
-                      android:textColor="#E33"
-                      android:layout_alignParentLeft="true"/>
-            <TextView android:layout_width="wrap_content"
-                      android:layout_height="fill_parent"
-                      android:layout_marginLeft="5dp"
-                      android:id="@+id/total_time"
-                      android:text="of 228:34"
-                      android:gravity="center_vertical"
-                      android:layout_toRightOf="@id/current_time"/>
-            <TextView android:layout_width="fill_parent"
-                      android:layout_height="fill_parent"
-                      android:text="1 of 3 in Series"
-                      android:id="@+id/episode"
-                      android:gravity="center"
-                      android:layout_alignParentTop="true"/>
-            <ImageButton android:id="@+id/imdb_button"
-                         android:layout_width="wrap_content"
-                         android:layout_height="wrap_content"
-                         android:layout_centerVertical="true"
-                         android:src="@drawable/icon_imdb"
-                         android:layout_alignParentRight="true"
-                         android:layout_marginRight="10dp"/>
-        </RelativeLayout>
-    </RelativeLayout>
+    <TextView android:id="@+id/show_title"
+              android:text="Lord of the Rings: The Fellowship of the Ring"
+              style="@style/titlefont"
+              android:layout_marginTop="50dp"
+              android:layout_width="700dp"
+              android:layout_centerHorizontal="true"/>
 </RelativeLayout>
