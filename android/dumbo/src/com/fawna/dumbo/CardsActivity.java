@@ -11,7 +11,6 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.text.method.DateTimeKeyListener;
 import android.util.Log;
 import android.view.Display;
 import android.view.View;
@@ -19,8 +18,6 @@ import android.view.ViewGroup;
 import android.widget.*;
 
 import java.io.InputStream;
-import java.net.URI;
-import java.text.DateFormat;
 import java.util.*;
 
 public class CardsActivity extends ListActivity {
@@ -34,23 +31,53 @@ public class CardsActivity extends ListActivity {
 
     String imdb = getIntent().getStringExtra("imdb");
 
+    // test data with HIMYM
+    //headerView = generateHeader("http://www.imdb.com/title/tt1777828/");
+    View headerView = generateHeader(imdb);
+    populateStatusBar(findViewById(R.id.fixed_header), imdb);
+    getListView().addHeaderView(headerView);
+
     timer = new Timer();
     CardsAdapter adapter = new CardsAdapter(imdb);
     setListAdapter(adapter);
 
-    final long time = System.currentTimeMillis();
-    // update the clock
+
+    scheduleClock((TextView) findViewById(R.id.current_time), System.currentTimeMillis());
+
+
+    final View header = findViewById(R.id.fixed_header);
+    header.setVisibility(View.GONE);
+    findViewById(R.id.status_drop_shadow).setVisibility(View.VISIBLE);
+
+    getListView().setOnScrollListener(new AbsListView.OnScrollListener() {
+
+      @Override
+      public void onScrollStateChanged(AbsListView view, int scrollState) {
+
+      }
+
+      @Override
+      public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+        if (firstVisibleItem != 0) {
+          header.setVisibility(View.VISIBLE);
+        } else {
+          header.setVisibility(View.GONE);
+        }
+      }
+    });
+
+  }
+
+  private void scheduleClock(final TextView view, final long time) {
     timer.schedule(new TimerTask() {
       @Override
       public void run() {
         runOnUiThread(new Runnable() {
           @Override
           public void run() {
-            final TextView currentTime = (TextView) findViewById(R.id.current_time);
-            if (currentTime != null) {
-              long current = (System.currentTimeMillis() - time) / 1000;
-              currentTime.setText("" + String.format("%d", current / 60) + ":" + String.format("%02d", current % 60));
-            }
+            long current = (System.currentTimeMillis() - time) / 1000;
+            String time = "" + String.format("%d", current / 60) + ":" + String.format("%02d", current % 60);
+            view.setText(time);
           }
         });
       }
@@ -108,16 +135,11 @@ public class CardsActivity extends ListActivity {
     return plotView;
   }
 
-  private View generateHeader(final String imdbUrl) {
-
-    // is this himym?
+  private void populateStatusBar(final View statusBar, final String imdbUrl) {
     final boolean isHIMYM = imdbUrl.contains("tt1777828");
 
-    // generate the header
-    View headerView = getLayoutInflater().inflate(R.layout.show_header, null);
-
     // create the imdb button handler
-    ImageButton imdbButton = (ImageButton) headerView.findViewById(R.id.imdb_button);
+    ImageButton imdbButton = (ImageButton) statusBar.findViewById(R.id.imdb_button);
     imdbButton.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
@@ -129,17 +151,29 @@ public class CardsActivity extends ListActivity {
 
     // set the cover photo to himym if necessary
     if (isHIMYM) {
+      TextView totalTime = (TextView) statusBar.findViewById(R.id.total_time);
+      totalTime.setText("of 22:45");
+
+      TextView episode = (TextView) statusBar.findViewById(R.id.episode);
+      episode.setText("Season 6 ep 10");
+    }
+  }
+
+  private View generateHeader(final String imdbUrl) {
+
+    // is this himym?
+    final boolean isHIMYM = imdbUrl.contains("tt1777828");
+
+    // generate the header
+    View headerView = getLayoutInflater().inflate(R.layout.show_header, null);
+
+    // set the cover photo to himym if necessary
+    if (isHIMYM) {
       ImageView coverPhoto = (ImageView) headerView.findViewById(R.id.lotr_cover);
       coverPhoto.setImageResource(R.drawable.himym_cover);
 
       TextView title = (TextView) headerView.findViewById(R.id.show_title);
       title.setText("How I met your Mother");
-
-      TextView totalTime = (TextView) headerView.findViewById(R.id.total_time);
-      totalTime.setText("of 22:45");
-
-      TextView episode = (TextView) headerView.findViewById(R.id.episode);
-      episode.setText("Season 6 episode 10");
     }
 
     TextView tv = (TextView) headerView.findViewById(R.id.show_title);
@@ -147,21 +181,20 @@ public class CardsActivity extends ListActivity {
     tv.setTypeface(tf);
 
     layoutCover(headerView);
-
     return headerView;
   }
 
   public class CardsAdapter implements ListAdapter {
 
-    private View headerView;
     private List<View> cards;
+    private View statusBar;
     final static int EXTRA_VIEWS = 2;
 
     public CardsAdapter(String imdbUrl) {
+      statusBar = getLayoutInflater().inflate(R.layout.status_bar, null);
+      populateStatusBar(statusBar, imdbUrl);
 
-      // test data with HIMYM
-      //headerView = generateHeader("http://www.imdb.com/title/tt1777828/");
-      headerView = generateHeader(imdbUrl);
+      scheduleClock((TextView) statusBar.findViewById(R.id.current_time), System.currentTimeMillis());
 
       cards = new ArrayList<View>();
       View actor1 = generateActorCard("Josh Radnor", "http://ia.media-imdb.com/images/M/MV5BMjAwNTUxMTM4OF5BMl5BanBnXkFtZTcwNjUyNzc4Mg@@._V1._SY314_CR3,0,214,314_.jpg", "http://www.imdb.com/name/nm1102140/");
@@ -215,7 +248,7 @@ public class CardsActivity extends ListActivity {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
       if (position == 0) {
-        return headerView;
+        return statusBar;
       } else if (position == 1) {
           TextView padding = new TextView(getBaseContext());
           padding.setBackgroundColor(Color.argb(255, 196, 196, 196));
@@ -269,6 +302,7 @@ public class CardsActivity extends ListActivity {
 
   @Override
   public void onDestroy() {
+    super.onDestroy();
     timer.cancel();
     timer.purge();
   }

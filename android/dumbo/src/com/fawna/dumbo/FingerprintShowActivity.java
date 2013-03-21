@@ -16,7 +16,9 @@ import android.view.View;
 
 public class FingerprintShowActivity extends Activity 
 {
-  FingerprintListener fingerprinter;
+    Boolean DEBUG = true;
+
+    FingerprintListener fingerprinter;
 
   /**
    * Called when the activity is first created.
@@ -40,19 +42,11 @@ public class FingerprintShowActivity extends Activity
               frameAnimation.start();
               img.setVisibility(View.VISIBLE);
 
-              fingerprinter.startFingerprinting();
-              
-              /*Old automatic code
-              Timer t = new Timer();
-              t.schedule(new TimerTask() {
-                  @Override
-                  public void run() {
-                      Intent intent = new Intent(FingerprintShowActivity.this, CardsActivity.class);
-                      startActivity(intent);
-                  }
-              }, 50);
-            }*/
-
+              if (!DEBUG) {
+                fingerprinter.startFingerprinting();
+              } else {
+                didNotFindMatchForCode();
+              }
           }
       });
   }
@@ -82,10 +76,10 @@ public class FingerprintShowActivity extends Activity
     startActivity(intent);
   }
 
-  /*public void didNotFindMatchForCode() 
+  public void didNotFindMatchForCode()
   {
     Intent intent = new Intent(FingerprintShowActivity.this, CardsActivity.class);
-    //intent.putExtra("imdb", table.imdb);
+    intent.putExtra("imdb", "http://www.imdb.com/title/tt1777828/");
     startActivity(intent);
-  }*/
+  }
 }
