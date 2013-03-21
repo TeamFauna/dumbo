@@ -9,6 +9,7 @@
             android:id="@android:id/list"
             android:dividerHeight="0dp"
             android:divider="@null"
+            android:background="#c4c4c4"
             >
     </ListView>
     <include layout="@layout/status_bar" />
