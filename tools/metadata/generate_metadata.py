@@ -39,6 +39,7 @@ def generateMetadata(path):
   def getRoleEvents():
     roleEvents = []
     for character in characterLines.keys():
+      lineTimestamper.reset()
       lines = characterLines[character]
       for line in lines:
         timestamp = lineTimestamper.timestamp(line)
@@ -78,6 +79,7 @@ def generateMetadata(path):
   def getPlotEvents():
     plotEvents = []
     for trivia in manual.trivia:
+      lineTimestamper.reset()
       plotEvents.append({
           'time_stamp': lineTimestamper.timestamp(trivia['line']),
           'plot': trivia['trivia']

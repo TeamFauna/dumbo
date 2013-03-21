@@ -2,6 +2,7 @@
 Given a phrase, returns the time in milliseconds it was said.
 """
 
+import math
 import re
 
 DEBUG = False
@@ -9,12 +10,30 @@ DEBUG = False
 class LineTimestamper:
   def __init__(self, subtitlesPath):
     self.subs = open(subtitlesPath, 'r').read().lower()
+    self.reset()
+
+  def reset(self):
+    self.lastTimestamp = 0
 
   def timestamp(self, phrase):
-    for matchIndex in self.findPotentialMatches_(phrase.lower()):
+    results = []
+    for (matchIndex, confidence, match) in self.findPotentialMatches_(phrase.lower()):
       if matchIndex > 0:
-        return self.getTimestampForIndex_(matchIndex)
-    return -1 # phrase not found :(
+        result = self.getTimestampForIndex_(matchIndex)
+        if result < self.lastTimestamp:
+          results.append((result, confidence))
+        else:
+          self.lastTimestamp = result
+          return int(result/1000)
+    bestResult = -1
+    bestConfidence = 0
+    results.reverse()
+    for (result, confidence) in results:
+      confidence += 3 if result > self.lastTimestamp else 0
+      if confidence > bestConfidence:
+        bestConfidence = confidence
+        bestResult = result
+    return int(bestResult/1000)
 
   def findPotentialMatches_(self, fullPhrase):
     for phrase in self.getSubPhrases_(fullPhrase):
@@ -25,26 +44,36 @@ class LineTimestamper:
 
   def getSubPhrases_(self, phrase):
     yield phrase
-    for length in [30, 20, 10]:
-      yield phrase[length:]
-      yield phrase[:-length]
-      yield phrase[int(length * .5):int(length * 1.5)]
-      yield phrase[length:length*2]
-      yield phrase[length*2:length*3]
-      yield phrase[length*3:length*4]
-      yield phrase[length*4:length*5]
+    for sentence in self.splitOn_(phrase, '[.!?]'): yield sentence
+    for sentence in self.splitOn_(phrase, '[.!?,;:]'): yield sentence
+    for sentence in self.splitOn_(phrase, '[.!?,;:\-]'): yield sentence
+    for length in [20, 15, 10]:
+      start = 0
+      while start + length < len(phrase):
+        yield phrase[start:start + length].strip()
+        start += length
+      if length + 4 < len(phrase):
+        yield phrase[:-length]
+
+  def splitOn_(self, phrase, regex):
+    sentences = [sentence.strip() for sentence in re.split(regex, phrase)]
+    if len(sentences) is 1:
+      return
+    sentences.sort(key=lambda sentence: (-len(sentence), sentence))
+    for sentence in sentences:
+      if len(sentence) > 4: yield sentence
 
   def exactMatch_(self, phrase):
-    return self.subs.find(phrase)
+    return (self.subs.find(phrase), len(phrase), phrase)
 
   def noEndingPunctMatch_(self, phrase):
-    return self.subs.find(re.sub("[.?!]", "", phrase))
+    return (self.subs.find(re.sub("[.?!]", "", phrase)), len(phrase) * .97, phrase)
 
   def noPunctMatch_(self, phrase):
-    return self.subs.find(re.sub("[.,?!]", "", phrase))
+    return (self.subs.find(re.sub("[.,?!]", "", phrase)), len(phrase) * .95, phrase)
 
   def charOnlyMatch_(self, phrase):
-    return self.subs.find(re.sub("[;:'\".,?!]", "", phrase))
+    return (self.subs.find(re.sub("[;:'\".,?!]", "", phrase)), len(phrase) * .9, phrase)
 
   def getTimestampForIndex_(self, index):
     timeEnd = self.subs.rfind(' --> ', 0, index)
