@@ -39,9 +39,11 @@ function query(req, res) {
         return server.respond(req, res, 500, { error: 'Lookup failed' });
       }
 
+      var success = fingerprinter.isSuccess(result.status);
+
       if (!result.match) {
         log.debug('Query failed: ' + result.status);
-        return server.respond(req, res, 200, { success: false, status: result.status });
+        return server.respond(req, res, 200, { success: success, status: result.status });
       }
       
       database.getMovie(result.match.movie_id, function(err, movie) {
@@ -57,7 +59,7 @@ function query(req, res) {
         log.debug('Completed lookup in ' + duration + 'ms. success=' +
           success + ', status=' + result.status);
       
-        return server.respond(req, res, 200, { success: true,
+        return server.respond(req, res, 200, { success: success,
           status: result.status, match: result.match || null });
       });
     });

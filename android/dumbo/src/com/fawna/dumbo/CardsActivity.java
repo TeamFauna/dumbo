@@ -85,22 +85,14 @@ public class CardsActivity extends ListActivity {
 
   }
 
-  private void layoutCover(View headerView) {
-    Display display = getWindowManager().getDefaultDisplay();
-    int screenWidth = display.getWidth();
-
-    ImageView cover = (ImageView) headerView.findViewById(R.id.lotr_cover);
-    Drawable d = cover.getDrawable();
-    int intendedWidth = screenWidth;
+  private void scaleImageToFitWidth(ImageView image, int intendedWidth) {
+    Drawable d = image.getDrawable();
     int originalWidth = d.getIntrinsicWidth();
     int originalHeight = d.getIntrinsicHeight();
     float scale = (float)intendedWidth / originalWidth;
     int newHeight = Math.round(originalHeight * scale);
-    cover.setLayoutParams(new RelativeLayout.LayoutParams(
-        RelativeLayout.LayoutParams.WRAP_CONTENT,
-        RelativeLayout.LayoutParams.WRAP_CONTENT));
-    cover.getLayoutParams().width = intendedWidth;
-    cover.getLayoutParams().height = newHeight;
+    image.getLayoutParams().width = intendedWidth;
+    image.getLayoutParams().height = newHeight;
   }
 
   private View generateActorCard(final String name, final String photoUrl, final String imdbUrl) {
@@ -119,9 +111,8 @@ public class CardsActivity extends ListActivity {
       }
     });
 
-    new DownloadImageTask((ImageView) actor.findViewById(R.id.actor_photo))
+    new DownloadImageTask((ImageView)actor.findViewById(R.id.actor_photo))
         .execute(photoUrl);
-
 
     return actor;
   }
@@ -155,7 +146,7 @@ public class CardsActivity extends ListActivity {
       totalTime.setText("of 22:45");
 
       TextView episode = (TextView) statusBar.findViewById(R.id.episode);
-      episode.setText("Season 6 ep 10");
+      episode.setText("Se. 6 Ep. 10");
     }
   }
 
@@ -169,18 +160,20 @@ public class CardsActivity extends ListActivity {
 
     // set the cover photo to himym if necessary
     if (isHIMYM) {
-      ImageView coverPhoto = (ImageView) headerView.findViewById(R.id.lotr_cover);
+      ImageView coverPhoto = (ImageView) headerView.findViewById(R.id.show_cover);
       coverPhoto.setImageResource(R.drawable.himym_cover);
 
       TextView title = (TextView) headerView.findViewById(R.id.show_title);
-      title.setText("How I met your Mother");
+      title.setText("How I Met Your Mother");
     }
 
     TextView tv = (TextView) headerView.findViewById(R.id.show_title);
     Typeface tf = Typeface.createFromAsset(getAssets(), "fonts/avenir_next.ttc");
     tv.setTypeface(tf);
 
-    layoutCover(headerView);
+    Display display = getWindowManager().getDefaultDisplay();
+    ImageView cover = (ImageView)headerView.findViewById(R.id.show_cover);
+    scaleImageToFitWidth(cover, display.getWidth());
     return headerView;
   }
 
@@ -195,7 +188,6 @@ public class CardsActivity extends ListActivity {
       populateStatusBar(statusBar, imdbUrl);
 
       scheduleClock((TextView) statusBar.findViewById(R.id.current_time), System.currentTimeMillis());
-
 
       cards = new ArrayList<View>();
       View actor1 = generateActorCard("Josh Radnor", "http://ia.media-imdb.com/images/M/MV5BMjAwNTUxMTM4OF5BMl5BanBnXkFtZTcwNjUyNzc4Mg@@._V1._SY314_CR3,0,214,314_.jpg", "http://www.imdb.com/name/nm1102140/");
@@ -298,6 +290,7 @@ public class CardsActivity extends ListActivity {
 
     protected void onPostExecute(Bitmap result) {
       bmImage.setImageBitmap(result);
+      scaleImageToFitWidth(this.bmImage, 240);
     }
   }
 
