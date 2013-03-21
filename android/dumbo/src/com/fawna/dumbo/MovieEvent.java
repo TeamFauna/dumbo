@@ -12,6 +12,10 @@ public class MovieEvent
   public String actor_name;
   public String actor_imdb;
   public String actor_picture;
+
+  public static String TYPE_PLOT = "PLOT";
+  public static String TYPE_ACTOR = "ACTOR";
+
   
   public MovieEvent(JSONObject event) {
     try {

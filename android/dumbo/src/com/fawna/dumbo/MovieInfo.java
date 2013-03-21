@@ -6,7 +6,7 @@ import java.util.ArrayList;
 
 public class MovieInfo 
 {
-  public String imdb, name;
+  public String imdb, name, summary;
   public long time;
   public ArrayList<MovieEvent> events;
   
@@ -23,6 +23,7 @@ public class MovieInfo
       JSONObject metadata = resp.getJSONObject("metadata");
       name = metadata.getString("name");
       imdb = metadata.getString("imdb_url");
+      summary = metadata.getString("summary");
 
       //TODO parse the roles
 

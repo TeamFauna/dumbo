@@ -158,7 +158,7 @@ public class Fingerprinter implements Runnable
                       if (bufferSize != AudioRecord.ERROR_BAD_VALUE) {
                           // check if we can instantiate and have a success
                           Log.d("Fingerprinter", "Good Values, rate: " + rate + "Hz, bits: " + audioFormat + ", channel: " + channelConfig + ", BufferSize: " + bufferSize); 
-                          AudioRecord recorder = new AudioRecord(MediaRecorder.AudioSource.MIC, rate, channelConfig, audioFormat, bufferSize);
+                          AudioRecord recorder = new AudioRecord(MediaRecorder.AudioSource.DEFAULT, rate, channelConfig, audioFormat, bufferSize);
 
                           if (recorder.getState() == AudioRecord.STATE_INITIALIZED)
                               return recorder;

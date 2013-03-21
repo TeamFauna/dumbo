@@ -124,14 +124,11 @@ public class FingerprintListener implements AudioFingerprinterListener
   {
   }
 
-  public void didFindMatchForCode(final JSONObject table,
-      String code) 
-  {
+  public void didFindMatchForCode(final JSONObject table, String code) {
     final MovieInfo mi = new MovieInfo(table);
     //Return MovieInfo
     Activity activity = (Activity) act;
-    activity.runOnUiThread(new Runnable() 
-    {   
+    activity.runOnUiThread(new Runnable() {
       public void run() 
       {
         act.didFindMatchForCode(mi);
