@@ -5,8 +5,7 @@
 
 var EventEmitter = require('events').EventEmitter;
 
-exports.lock = lock;
-exports.release = release;
+exports.createMutex = createMutex;
 
 var Mutex = function() {
   var queue = new EventEmitter();
@@ -29,18 +28,11 @@ var Mutex = function() {
   };
 };
 
-var gMutex = null;
-
-function lock(callback) {
-  if (!gMutex) {
-    gMutex = new Mutex();
-  }
-  gMutex.lock(callback);
-}
-
-function release() {
-  if (gMutex) {
-    gMutex.release();
-  }
+function createMutex() {
+  var m = new Mutex();
+  return {
+    lock: m.lock,
+    release: m.release
+  };
 }
 

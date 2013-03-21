@@ -7,19 +7,12 @@ var fs = require('fs');
 var mysql = require('mysql');
 var temp = require('temp');
 var config = require('../config');
-var gMutex = require('../mutex');
 var log = require('winston');
 
 exports.query = query;
 exports.getMovie = getMovie;
 exports.getMovies = getMovies;
-exports.getEvents = getEvents;
 exports.insertMovie = insertMovie;
-exports.insertCodes = insertCodes;
-exports.insertPlotEvents = insertPlotEvents;
-exports.insertActors = insertActors;
-exports.insertRoles = insertRoles;
-exports.insertRoleEvents = insertRoleEvents;
 exports.updateMovie = updateMovie;
 exports.disconnect = disconnect;
                 
@@ -87,12 +80,13 @@ function query(fp, rows, callback) {
   });
 }
 
-function getMovie(movieID, callback) {
+function getMovie(movie_id, callback) {
   var sql = 'SELECT * FROM movies WHERE id=?';
-  client.query(sql, [movieID], function(err, movies) {
+  client.query(sql, [movie_id], function(err, movies) {
     if (movies && movies.length >= 1) {
-      return callback(null, movies[0]);
+      return getEvents(movie_id, movies[0], callback);
     }
+
     return callback(err, null);
   });
 }
@@ -108,7 +102,7 @@ function getMovies(callback) {
   });
 }
 
-function getEvents(movie_id, callback) {
+function getEvents(movie_id, movie, callback) {
   var events = [];
 
   var sql =
@@ -158,28 +152,97 @@ function getEvents(movie_id, callback) {
         return a.time_stamp - b.time_stamp;
       });
 
-      callback(null, events);
+      movie.events = events;
+      callback(null, movie);
     });
   });
 }
 
-function insertMovie(movie, callback) {
+function insertMovie(movie, fingerprint, callback) {
   var sql = 'INSERT INTO movies ' +
     '(code_version, name, imdb_url, length, import_date) ' +
     'VALUES (?, ?, ?, ?, ?)';
-  var values = [movie.codes.version, movie.name, movie.imdb_url, movie.codes.length, new Date()];
+  var values = [movie.codes.version, movie.name, movie.imdb_url, movie.length, new Date()];
   client.query(sql, values, function(err, info) {
     if (err) {
       return callback(err, null);
     }
 
-    if (info.affectedRows !== 1) {
-      return callback('Movie insert failed', null);
+    movie.id = info.insertId;
+
+    insertCodes(movie.id, fingerprint, function(err) {
+      if (err) {
+        log.error('Error inserting codes: ' + err);
+        return callback(err, null);
+      }
+
+      insertMetadata(movie.id, movie, callback);
+    });
+  });
+}
+
+function updateMovie(id, movie, callback) {
+  var sql = 'UPDATE movies SET name=?, imdb_url=?, length=? WHERE id=?';
+  var values = [movie.name, movie.imdb_url, movie.length, id];
+  client.query(sql, values, function(err, info) {
+    if (err) {
+      return callback(err, null);
     }
 
-    var movie_id = info.insertId;
-    callback(null, movie_id);
+    insertMetadata(id, movie, callback);
   });
+}
+
+function insertMetadata(id, movie, callback) {
+  insertPlotEvents(id, movie.plot_events, function(err, plot_event_ids) {
+    if (err) {
+      log.error('Error adding plot events: ' + err);
+    }
+  });
+
+  insertActors(movie.actors, function(err, actor_ids) {
+    if (err) {
+      return error('Error addings actors: ' + err);
+    }
+
+    for (var i = 0; i < movie.roles.length; i++) {
+      var role = movie.roles[i];
+      role.actor_id = actor_ids[role.actor];
+    }
+
+    insertRoles(movie.roles, function(err, role_ids) {
+      if (err) {
+        return error('Error inserting roles: ' + err);
+      }
+
+      var new_events = [];
+      for (var i = 0; i < movie.role_events.length; i++) {
+        var role_event = movie.role_events[i];
+        if (role_event.role >= 0) {
+          role_event.role_id = role_ids[role_event.role];
+          new_events.push(role_event);
+        }
+      }
+
+      insertRoleEvents(id, new_events, function(err) {
+        if (err) {
+          return error('Error inserting role events: ' + err);
+        }
+
+        return success();
+      });
+    });
+  });
+
+  function error(error_string) {
+    log.error(error_string);
+    callback(error_string, null);
+  }
+
+  function success() {
+    log.info('Updated movie: ' + movie.name + ' (' + id + ')');
+    callback(null, id);
+  }
 }
 
 function insertCodes(movie_id, fp, callback) {
@@ -187,7 +250,8 @@ function insertCodes(movie_id, fp, callback) {
   var file_name = temp.path({ prefix: 'echoprint-' + movie_id, suffix: '.csv' });
   var sql_file_name = file_name;
 
-  // Hack for cygwin on Russell's computer.  Will make better later... maybe.
+  // Hack for cygwin on Russell's computer.
+  // Node expects windows paths but mysql expects linux paths.
   if (sql_file_name.indexOf('C:\\cygwin') == 0) {
     sql_file_name = sql_file_name.replace(/\\/g, '/');
     sql_file_name = sql_file_name.slice(9);
@@ -289,6 +353,10 @@ function insertMultipleRows(sql, rows, callback) {
   var error = null;
   var ids = Array(rows.length);
 
+  if (!rows.length) {
+    callback(null, []);
+  }
+
   for (var i = 0; i < rows.length; i++) {
     (function(i) {
       client.query(sql, rows[i], function(err, info) {
@@ -309,83 +377,6 @@ function insertMultipleRows(sql, rows, callback) {
     if (counter == ids.length) {
       callback(error, ids);
     }
-  }
-}
-
-function updateMovie(id, movie, callback) {
-  var sql = 'UPDATE movies SET name=?, imdb_url=?, length=? WHERE id=?';
-  gMutex.lock(function() {
-    client.query(sql, [movie.name, movie.imdb_url, movie.length, id], function(err, info) {
-      if (err) {
-        return error(err);
-      }
-
-      if (movie.plot_events && movie.plot_events.length > 0) {
-        insertPlotEvents(id, movie.plot_events, function(err, plot_event_ids) {
-          if (err) {
-            log.error('Error adding plot events: ' + err);
-          }
-        });
-      }
-
-      if (movie.actors && movie.actors.length > 0) {
-        insertActors(movie.actors, function(err, actor_ids) {
-          if (err) {
-            return error('Error addings actors: ' + err);
-          }
-
-          if (movie.roles && movie.roles.length > 0) {
-            for (var i = 0; i < movie.roles.length; i++) {
-              var role = movie.roles[i];
-              role.actor_id = actor_ids[role.actor];
-            }
-
-            insertRoles(movie.roles, function(err, role_ids) {
-              if (err) {
-                return error('Error inserting roles: ' + err);
-              }
-
-              var new_events = [];
-              if (movie.role_events && movie.role_events.length > 0) {
-                for (var i = 0; i < movie.role_events.length; i++) {
-                  var role_event = movie.role_events[i];
-                  if (role_event.role >= 0) {
-                    role_event.role_id = role_ids[role_event.role];
-                    new_events.push(role_event);
-                  }
-                }
-
-                insertRoleEvents(id, new_events, function(err) {
-                  if (err) {
-                    return error('Error inserting role events: ' + err);
-                  }
-
-                  return success();
-                });
-              } else {
-                return success();
-              }
-            });
-          } else {
-            return success();
-          }
-        });
-      } else {
-        return success();
-      }
-    });
-  });
-
-  function error(error_string) {
-    gMutex.release();
-    log.error(error_string);
-    callback(error_string, null);
-  }
-
-  function success() {
-    gMutex.release();
-    log.info('Updated movie: ' + movie.name + ' (' + id + ')');
-    callback(null, {});
   }
 }
 
