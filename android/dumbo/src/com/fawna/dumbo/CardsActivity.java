@@ -303,10 +303,6 @@ public class CardsActivity extends ListActivity {
   @Override
   public void onDestroy() {
     super.onDestroy();
-<<<<<<< HEAD
-
-=======
->>>>>>> 127a6a8259907b8dbd0dfc0363cb35363fa231bc
     timer.cancel();
     timer.purge();
   }
