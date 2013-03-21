@@ -39,14 +39,22 @@ function query(req, res) {
         return server.respond(req, res, 500, { error: 'Lookup failed' });
       }
       
-      var duration = new Date() - req.start;
-      var success = !!result.success;
+      database.getMovie(result.match.movie_id, function(err, movie) {
+        if (err) {
+          return server.respond(req, res, 500, { error: 'Failed to get movie metadata: ' + err });
+        }
 
-      log.debug('Completed lookup in ' + duration + 'ms. success=' +
-        success + ', status=' + result.status);
+        result.match.metadata = movie;
+
+        var duration = new Date() - req.start;
+        var success = !!result.success;
+
+        log.debug('Completed lookup in ' + duration + 'ms. success=' +
+          success + ', status=' + result.status);
       
-      return server.respond(req, res, 200, { success: success,
-        status: result.status, match: result.match || null });
+        return server.respond(req, res, 200, { success: true,
+          status: result.status, match: result.match || null });
+      });
     });
   });
 };
@@ -56,33 +64,35 @@ function query(req, res) {
  */
 function insert(req, res) {
   var movie = req.body;
-  
-  if (!isValidCode(movie.codes)) {
-    return server.respond(req, res, 500, { error: 'Missing or invalid code fields' });
-  }
-  
-  if (!isCorrectCodeVersion(movie.codes)) {
-    return server.respond(req, res, 500, { error: 'Invalid version' });
-  }
-  
-  fingerprinter.decodeCodeString(movie.codes.string, function(err, fingerprint) {
-    if (err || !fingerprint.codes.length) {
-      log.error('Failed to decode codes for insert: ' + err);
-      return server.respond(req, res, 500, { error: 'Invalid code' });
-    }
 
-    fingerprinter.insert(movie, fingerprint, function(err, result) {
-      if (err) {
-        log.error('Failed to insert movie: ' + err);
-        return server.respond(req, res, 500, { error: 'Insertion failed' });
+  validateMovie(req, res, movie, true, function() {
+    fingerprinter.decodeCodeString(movie.codes.string, function(err, fingerprint) {
+      if (err || !fingerprint.codes.length) {
+        log.error('Failed to decode codes for insert: ' + err);
+        return server.respond(req, res, 500, { error: 'Invalid code' });
       }
-      
-      var duration = new Date() - req.start;
-      log.debug('Inserted new movie in ' + duration + 'ms. movie.id=' +
-        result.movie_id);
-      
-      result.success = true;
-      return server.respond(req, res, 200, result);
+
+      // Check if the movie already exists to avoid duplication.
+      fingerprinter.query(movie.codes, fingerprint, function(err, result) {
+        if (err) {
+          server.respond(req, res, 500, { error: 'Query failed: ' + err });
+        }
+
+        if (result.success) {
+          updateMovie(req, res, result.match.movie_id, movie);
+        } else {
+          database.insertMovie(movie, fingerprint, function(err, movie_id) {
+            if (err) {
+              server.respond(req, res, 500, { error: ' Movie insertion failed: ' + err });
+            }
+
+            var duration = new Date() - req.start;
+            log.debug('Inserted new movie in ' + duration + 'ms. movie.id=' + movie_id);
+        
+            return server.respond(req, res, 200, { success: true, movie_id: movie_id });
+          });
+        }
+      });
     });
   });
 };
@@ -93,23 +103,9 @@ function insert(req, res) {
 function update(req, res) {
   var movie = req.body;
 
-  var id = parseInt(movie.id, 10);
-  if (!(id > 0)) {
-    return server.respond(req, res, 500, { error: 'Invalid movie id: ' + id });
-  }
-
-  database.updateMovie(id, movie, function(err, result) {
-    if (err) {
-      log.error('Failed to update movie: ' + err);
-      return server.respond(req, res, 500, { error: 'Update failed' });
-    }
-
-    var duration = new Date() - req.start;
-    log.debug('Updated movie in ' + duration + 'ms. movie.id=' + id);
-    result.success = true;
-    return server.respond(req, res, 200, result);
+  validateMovie(req, res, movie, false, function() {
+    updateMovie(req, res, movie.id, movie);
   });
-    
 }
 
 /**
@@ -134,25 +130,65 @@ function get(req, res) {
 
   database.getMovie(id, function(err, movie) {
     if (err) {
-      return server.respond(req, res, 500, 'Error metching metadata: ' + err);
+      return server.respond(req, res, 500, 'Error metching movie metadata: ' + err);
     }
     
     var match = {};
     match.metadata = movie;
+    server.respond(req, res, 200, { success: true, match: match });
+  });
+}
 
-    database.getEvents(id, function(err, events) {
-      if (err) {
-        return server.respond(req, res, 500, 'Error metching metadata: ' + err);
-      }
+function validateMovie(req, res, movie, is_insertion, callback) {
+  if (is_insertion) {
+    if (!isValidCode(movie.codes)) {
+      return server.respond(req, res, 500, { error: 'Missing or invalid code fields' });
+    }
+    
+    if (!isCorrectCodeVersion(movie.codes)) {
+      return server.respond(req, res, 500, { error: 'Invalid version' });
+    }
+  } else {
+    movie.id = parseInt(movie.id, 10);
+    if (!(movie.id > 0)) {
+      return server.respond(req, res, 500, { error: 'Invalid movie id: ' + move.id });
+    }
+  }
 
-      match.metadata.events = events;
-      server.respond(req, res, 200, { success: true, match: match });
-    });
+  if (!movie.plot_events) {
+    movie.plot_events = [];
+  }
+
+  if (!movie.actors) {
+    movie.actors = [];
+  }
+
+  if (!movie.roles) {
+    movie.roles = [];
+  }
+
+  if (!movie.role_events) {
+    movie.role_events = [];
+  }
+
+  callback();
+}
+
+function updateMovie(req, res, id, movie) {
+  database.updateMovie(movie.id, movie, function(err, result) {
+    if (err) {
+      log.error('Failed to update movie: ' + err);
+      return server.respond(req, res, 500, { error: 'Update failed' });
+    }
+
+    var duration = new Date() - req.start;
+    log.debug('Updated movie in ' + duration + 'ms. movie.id=' + id);
+    return server.respond(req, res, 200, { success: true });
   });
 }
 
 function isValidCode(codes) {
-  return codes && codes.string && codes.version && !isNaN(parseInt(codes.length, 10));
+  return codes && codes.string && codes.version;
 }
 
 function isCorrectCodeVersion(codes) {

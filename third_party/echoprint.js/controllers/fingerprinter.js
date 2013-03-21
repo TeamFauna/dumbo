@@ -1,6 +1,5 @@
 var zlib = require('zlib');
 var log = require('winston');
-var gMutex = require('../mutex');
 var config = require('../config');
 var database = require('../models/mysql');
 
@@ -14,7 +13,6 @@ var MATCH_SLOP = 2;
 // Exports
 exports.decodeCodeString = decodeCodeString;
 exports.query = query;
-exports.insert = insert;
 
 /**
  * Takes a base64 encoded representation of a zlib-compressed code string
@@ -149,8 +147,10 @@ function query(codes, fingerprint, callback) {
     if (matches.length === 1) {
       if (matches[0].ascore / fingerprint.codes.length >= MIN_MATCH_PERCENT) {
         // Fetch metadata for the single match
-        return getMovieMetadata(matches[0], matches,
-          'SINGLE_GOOD_MATCH_HISTOGRAM_DECREASED', callback);
+        return callback(null, {
+          match: matches[0],
+          status: 'SINGLE_GOOD_MATCH_HISTOGRAM_DECREASED'
+        });
       } else {
         log.debug('Single bad match with actual score ' + matches[0].ascore +
           '/' + fingerprint.codes.length);
@@ -184,30 +184,9 @@ function query(codes, fingerprint, callback) {
       return callback(null, { status: 'MULTIPLE_BAD_HISTOGRAM_MATCH' });
     
     // Fetch metadata for the top movie
-    getMovieMetadata(topMatch, matches,
-      'MULTIPLE_GOOD_MATCH_HISTOGRAM_DECREASED', callback);
-  });
-}
-
-/**
- * Attach movie metadata to a query match.
- */
-function getMovieMetadata(match, allMatches, status, callback) {
-  database.getMovie(match.movie_id, function(err, movie) {
-    if (err) {
-      return callback(err, null);
-    }
-    
-    match.metadata = movie;
-    match.offset.time = (match.offset.offset + match.offset.min_time) / SECONDS_TO_TIMESTAMP;
-
-    database.getEvents(match.movie_id, function(err, events) {
-      if (err) {
-        return callback(err, null);
-      }
-
-      match.metadata.events = events;
-      callback(null, { success: true, status: status, match: match }, allMatches);
+    callback(null, {
+      match: topMatch,
+      status: 'MULTIPLE_GOOD_MATCH_HISTOGRAM_DECREASED'
     });
   });
 }
@@ -300,6 +279,8 @@ function getActualScore(fp, match, slop) {
     offsets.sort(function(a, b) { return b.amount - a.amount; });
     match.offset = offsets[0];
   }
+
+  match.offset.time = (match.offset.offset + match.offset.min_time) / SECONDS_TO_TIMESTAMP;
   
   // Convert the histogram into an array, sort it, and sum the top two
   // frequencies to compute the adjusted score
@@ -315,95 +296,5 @@ function getActualScore(fp, match, slop) {
   else if (array.length === 1)
     return array[0][1];
   return 0;
-}
-
-/**
- * Takes a movie fingerprint (includes codes and time offsets plus any
- * available metadata), adds it to the database and returns a movie_id
- */
-function insert(movie, fp, callback) {
-  log.info('Ingesting movie "' + movie.name +
-    '", ' + movie.length + ' seconds, ' + fp.codes.length + ' codes');
-  
-  if (!isValidFP(fp)) {
-    return callback('Missing required movie fields', null);
-  }
-  
-  // Acquire a lock while modifying the database
-  gMutex.lock(function() {
-    query(movie.codes, fp, function(err, res) {
-      if (err) {
-        return error('Query failed: ' + err);
-      }
-
-      if (res.success) {
-        console.log(res);
-      } else {
-        database.insertMovie(movie, function(err, movie_id) {
-          if (err) {
-            return error('Error inserting movie: ' + err);
-          }
-
-          database.insertCodes(movie_id, fp, function(err) {
-            if (err) {
-              log.error('Error inserting codes: ' + err);
-            }
-          });
-
-          database.insertPlotEvents(movie_id, movie.plot_events, function(err) {
-            if (err) {
-              log.error('Error inserting plot events: ' + err);
-            }
-          });
-
-          database.insertActors(movie.actors, function(err, actor_ids) {
-            if (err) {
-              return error('Error inserting actors: ' + err);
-            }
-
-            for (var i = 0; i < movie.roles.length; i++) {
-              var role = movie.roles[i];
-              role.actor_id = actor_ids[role.actor];
-            }
-
-            database.insertRoles(movie.roles, function(err, role_ids) {
-              if (err) {
-                return error('Error inserting roles: ' + err);
-              }
-
-              for (var i = 0; i < movie.role_events.length; i++) {
-                var role_event = movie.role_events[i];
-                role_event.role_id = role_ids[role_event.role];
-              }
-
-              database.insertRoleEvents(movie_id, movie.role_events, function(err) {
-                if (err) {
-                  return error('Error inserting role events: ' + err);
-                }
-
-                return success(movie_id);
-              });
-            });
-          });
-        });
-      }
-    });
-  });
-
-  function error(error_string) {
-    gMutex.release();
-    log.error(error_string);
-    callback(error_string, null);
-  }
-
-  function success(movie_id) {
-    gMutex.release();
-    log.info('Created movie_id: ' + movie_id + ' for ' + movie.name);
-    callback(null, { movie_id: movie_id });
-  }
-}
-
-function isValidFP(fp) {
-  return fp.codes.length && fp.times.length;
 }
 
