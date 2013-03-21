@@ -8,13 +8,12 @@ class LineParser:
   def __init__(self, filePath, type):
     self.transcript = open(filePath, 'r')
     self.characterLines = {}
-    if type.find('LOTR') > -1: self.type = 'LOTR'
-    else: self.type = 'other'
+    self.type = type
 
   def getLines(self):
     for line in self.transcript:
       line.rstrip()
-      if self.type is 'LOTR':
+      if self.type.find('lotr') > -1:
         character, line = self.parseLine1_(line)
       else:
         character, line = self.parseLine2_(line)

@@ -8,51 +8,52 @@ Generates movie metadata in the following format:
     { name: "", actor: 0, imdb_url: ""}
   ],
   actors: [
-    { name: "", imdb_url: "", pic_url: "" }
+    { name: "", imdb_url: "", picture_url: "" }
   ],
   role_events: [
-    { blurb: "", role: 0, timestamp: 324234 }
+    { blurb: "", role: 0, time_stamp: 324234 }
   ],
   plot_events: [
-    { plot: "", timestamp: 0 }
+    { plot: "", time_stamp: 0 }
   ]
 }
 """
 import json
 import re
+import imp
 from line_parser import LineParser
 from line_timestamper import LineTimestamper
 from imdb_parser import IMDBParser
 
 DEBUG = False;
 
-def generateMetadata(subtitlePath, transcriptPath, imdbInfo):
+def generateMetadata(path):
 
   def getActors():
     actors = []
     for actor in actorInfo.keys():
       info = actorInfo[actor]
-      actors.append({ "name": actor, "imdb_url": info['actorURL'], "pic_url": info['picURL'] })
+      actors.append({ "name": actor, "imdb_url": info['actorURL'], "picture_url": info['picURL'] })
     return actors
 
   def getRoleEvents():
     roleEvents = []
     for character in characterLines.keys():
+      lineTimestamper.reset()
       lines = characterLines[character]
       for line in lines:
         timestamp = lineTimestamper.timestamp(line)
         if timestamp < 0:
           if DEBUG: print 'ERROR', "couldn't find line \"%s\" said by %s" %(line, character)
         else:
-          roleEvents.append({ "blurb": line, "role": getCharacterIndex_(character), "timestamp": timestamp })
+          roleEvents.append({ "blurb": line, "role": getCharacterIndex_(character), "time_stamp": timestamp })
     return roleEvents
 
   def getCharacterIndex_(character):
     for (actorIndex, actor) in enumerate(actorInfo.keys()):
       if looselyMatches_(actorInfo[actor]['role'], character):
         return actorIndex
-    if DEBUG:
-      print 'ERROR', 'character', character, 'not found on IMDB'
+    if DEBUG: print 'ERROR', 'character', character, 'not found on IMDB'
     return -1
 
   stopList = ['the', 'of', 'mr', 'ms', 'mrs', 'in', 'on']
@@ -76,19 +77,31 @@ def generateMetadata(subtitlePath, transcriptPath, imdbInfo):
     return characters
 
   def getPlotEvents():
-    return []
+    plotEvents = []
+    for trivia in manual.trivia:
+      lineTimestamper.reset()
+      plotEvents.append({
+          'time_stamp': lineTimestamper.timestamp(trivia['line']),
+          'plot': trivia['trivia']
+      })
+    return plotEvents
 
   def printJson():
     print json.dumps({
-        "imdb_url": "URL",
-        "name": 'NAME',
+        "imdb_url": manual.url,
+        "name": manual.name,
         "roles": getRoles(),
         "actors": getActors(),
         "role_events": getRoleEvents(),
         "plot_events": getPlotEvents()
     }, ensure_ascii=False)
 
-  characterLines = LineParser(transcriptPath, subtitlePath).getLines()
+  manual = imp.load_source('manual', './data/' + path + '/manual.py')
+  subtitlePath = 'data/' + path + '/subs.srt'
+  transcriptPath = 'data/' + path + '/transcript.txt'
+  imdbInfo = 'data/' + path + '/cast.html'
+
+  characterLines = LineParser(transcriptPath, path).getLines()
   lineTimestamper = LineTimestamper(subtitlePath)
   actorInfo = IMDBParser(imdbInfo).getActorInfo()
 
@@ -96,13 +109,5 @@ def generateMetadata(subtitlePath, transcriptPath, imdbInfo):
 
 
 if __name__ == "__main__":
-  lotrSubs = 'data/TLOTR.The.Fellowship.of.the.Ring.2001.Extended.BluRay.1080p.DTSES6.1.2Audio.x264-CHD.srt'
-  lotrTranscript = 'data/LOTR_1ex_transcript.txt'
-  lotrCastFile = 'data/LOTR_1ex_cast.html'
-
-  himymSubs = 'data/How I Met Your Mother - 6x10 - Blitzgiving.HDTV.LOL.en.srt'
-  himymTranscript = 'data/HIMYM_S6E10_transcript.txt'
-  himymCastFile = 'data/HIMYM_S6E10_cast.txt'
-
-  #generateMetadata(lotrSubs, lotrTranscript, lotrCastFile)
-  generateMetadata(himymSubs, himymTranscript, himymCastFile)
+  #generateMetadata('lotr_1ex')
+  generateMetadata('himym_s6e10')
