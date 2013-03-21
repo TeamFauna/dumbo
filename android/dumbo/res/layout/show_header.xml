@@ -4,7 +4,7 @@
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content">
     <ImageView
-            android:id="@+id/lotr_cover"
+            android:id="@+id/show_cover"
             android:layout_width="fill_parent"
             android:layout_height="212dp"
             android:src="@drawable/lotr_cover"
