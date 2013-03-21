@@ -27,6 +27,8 @@ public class FingerprintShowActivity extends Activity
       setContentView(R.layout.main);
       layoutCover();
 
+      fingerprinter = new FingerprintListener(FingerprintShowActivity.this);
+
       final Button button = (Button)findViewById(R.id.button_identify);
       button.setOnClickListener(new View.OnClickListener() {
           public void onClick(View view) {
@@ -38,7 +40,7 @@ public class FingerprintShowActivity extends Activity
               frameAnimation.start();
               img.setVisibility(View.VISIBLE);
 
-              fingerprinter = new FingerprintListener(FingerprintShowActivity.this);
+              fingerprinter.startFingerprinting();
               
               /*Old automatic code
               Timer t = new Timer();
@@ -80,4 +82,10 @@ public class FingerprintShowActivity extends Activity
     startActivity(intent);
   }
 
+  /*public void didNotFindMatchForCode() 
+  {
+    Intent intent = new Intent(FingerprintShowActivity.this, CardsActivity.class);
+    //intent.putExtra("imdb", table.imdb);
+    startActivity(intent);
+  }*/
 }
