@@ -166,7 +166,7 @@ function query(codes, fingerprint, callback) {
     var topMatch = matches[0];
     var newTopScore = topMatch.ascore;
     
-    log.debug('Actual top score is ' + newTopScore + ', next score is ' +
+    log.debug('Actual top score is ' + newTopScore + ' at ' + match.offset.time + ' seconds in, next score is ' +
       matches[1].ascore);
     
     // If the best result actually matched fewer codes than our percentage
