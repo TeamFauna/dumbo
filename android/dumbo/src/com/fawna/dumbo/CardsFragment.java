@@ -144,9 +144,7 @@ public class CardsFragment extends ListFragment {
     } else {
         imdbView.setVisibility(View.GONE);
     }
-    new DownloadImageTask((ImageView)actor.findViewById(R.id.actor_photo))
-        .execute(photoUrl);
-
+    UrlImageLoader.loadImage((ImageView)actor.findViewById(R.id.actor_photo), photoUrl, 240);
     return actor;
   }
 
