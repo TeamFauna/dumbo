@@ -50,24 +50,34 @@ def generateMetadata(path):
     return roleEvents
 
   def getCharacterIndex_(character):
-    for (actorIndex, actor) in enumerate(actorInfo.keys()):
-      if looselyMatches_(actorInfo[actor]['role'], character):
-        return actorIndex
+    matchers = [exactlyMatches_, looselyMatches_]
+    for matcher in matchers:
+      for (actorIndex, actor) in enumerate(actorInfo.keys()):
+        if matcher(actorInfo[actor]['role'], character):
+          return actorIndex
     if DEBUG: print 'ERROR', 'character', character, 'not found on IMDB'
     return -1
 
-  stopList = ['the', 'of', 'mr', 'ms', 'mrs', 'in', 'on']
+  def exactlyMatches_(words1, words2):
+    words1 = stripPunct_(words1.lower())
+    words2 = stripPunct_(words2.lower())
+    if words1 is words2: return true
+    return matchWithSplit_(words1, words2, ' / ')
+
   def looselyMatches_(words1, words2):
     words1 = stripPunct_(words1.lower())
     words2 = stripPunct_(words2.lower())
-    if words1 is words2: return True
-    words = set(words1.split(' '))
-    for word in words2.split(' '):
+    return matchWithSplit_(words1, words2, ' ')
+
+  stopList = ['the', 'of', 'mr', 'ms', 'mrs', 'in', 'on']
+  def matchWithSplit_(words1, words2, split):
+    words = set(words1.split(split))
+    for word in words2.split(split):
       if word in words and not (word in stopList): return True
     return False
 
   def stripPunct_(word):
-    return re.sub("[().,/\-']", "", word)
+    return re.sub("[().,\-']", "", word)
 
   def getRoles():
     characters = []
@@ -85,6 +95,10 @@ def generateMetadata(path):
           'plot': trivia['trivia']
       })
     return plotEvents
+
+  def addManualInfo():
+    for actorName in manual.additionalRoles.keys():
+      actorInfo[actorName]['role'] += ' / ' + manual.additionalRoles[actorName]
 
   def printJson():
     # this will crash if the string contains any non-ascii characters
@@ -106,6 +120,7 @@ def generateMetadata(path):
   characterLines = LineParser(transcriptPath, path).getLines()
   lineTimestamper = LineTimestamper(subtitlePath)
   actorInfo = IMDBParser(imdbInfo).getActorInfo()
+  addManualInfo()
 
   printJson()
 

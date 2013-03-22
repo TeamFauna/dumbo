@@ -77,3 +77,11 @@ trivia = [
   }
 ]
 
+additionalRoles = {
+  'John DiMaggio': 'Fender',
+  'Billy West': 'Prof. Hubert J. Farnsworth / Dr. Zoidberg',
+  'Adam Horovitz': "Adam 'MCA' Yauch (voice)",
+  'Tress MacNeille': "Lady with Purse (voice)",
+  'Phil LaMarr': "Reverend Preacherbot (voice)"
+}
+
