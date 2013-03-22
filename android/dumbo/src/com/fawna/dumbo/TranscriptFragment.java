@@ -162,7 +162,7 @@ public class TranscriptFragment extends ListFragment {
 
     @Override
     public int getCount() {
-      return lines.size();
+      return lines.size() + 1;
     }
 
     @Override
@@ -182,8 +182,14 @@ public class TranscriptFragment extends ListFragment {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-      View v = lines.get(position);
-      if (position == lines.size() - 1) {
+      if (position == 0) {
+          TextView padding = new TextView(getActivity());
+          padding.setBackgroundColor(Color.argb(255, 196, 196, 196));
+          padding.setHeight(110);
+          return padding;
+      }
+      View v = lines.get(position - 1);
+      if (position == lines.size()) {
         Animation animation = AnimationUtils.loadAnimation(getActivity(), R.anim.fadein);
         v.startAnimation(animation);
       }
@@ -197,7 +203,7 @@ public class TranscriptFragment extends ListFragment {
 
     @Override
     public int getViewTypeCount() {
-      return Math.max(1, lines.size());
+      return Math.max(1, lines.size() + 1);
     }
 
     @Override

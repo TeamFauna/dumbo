@@ -83,7 +83,8 @@ def generateMetadata(path):
     characters = []
     for (actorIndex, actor) in enumerate(actorInfo.keys()):
       info = actorInfo[actor]
-      characters.append({ "name": info['role'], "actor": actorIndex, "imdb_url": info['characterURL'] })
+      for role in info['role'].split(' / '):
+        characters.append({ "name": role, "actor": actorIndex, "imdb_url": info['characterURL'] })
     return characters
 
   def getPlotEvents():
@@ -113,7 +114,8 @@ def generateMetadata(path):
         "roles": getRoles(),
         "actors": getActors(),
         "role_events": getRoleEvents(),
-        "plot_events": getPlotEvents()
+        "plot_events": getPlotEvents(),
+        "id": manual.id
     }, ensure_ascii=False)
 
   manual = imp.load_source('manual', './data/' + path + '/manual.py')
