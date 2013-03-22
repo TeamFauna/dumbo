@@ -63,3 +63,13 @@ CREATE TABLE IF NOT EXISTS `plot_events` (
   FOREIGN KEY (`movie`) REFERENCES `movies`(`id`)
 ) DEFAULT CHARSET=utf8;
 
+CREATE TABLE IF NOT EXISTS `comments` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `time_stamp` int NOT NULL,
+  `movie` int NOT NULL,
+  `comment` text NOT NULL,
+  PRIMARY KEY (`id`),
+  INDEX (`movie`, `time_stamp`),
+  FOREIGN KEY (`movie`) REFERENCES `movies`(`id`)
+) DEFAULT CHARSET=utf8;
+
