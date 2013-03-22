@@ -20,7 +20,7 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <activity android:name=".CardsActivity"
+        <activity android:name=".MovieViewActivity"
                   android:screenOrientation="portrait" />
         <activity android:name=".ShowPickerActivity"
                   android:screenOrientation="portrait" />

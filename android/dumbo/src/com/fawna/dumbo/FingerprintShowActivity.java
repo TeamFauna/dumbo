@@ -6,7 +6,6 @@ import android.graphics.drawable.AnimationDrawable;
 import android.graphics.drawable.ClipDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Display;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -122,9 +121,8 @@ public class FingerprintShowActivity extends Activity
 
   public void didFindMatchForCode(MovieInfo table) 
   {
-    CardsActivity.movieInfo = table;
-    Intent intent = new Intent(FingerprintShowActivity.this, CardsActivity.class);
-    intent.putExtra("imdb", table.imdb);
+    CardsFragment.movieInfo = table;
+    Intent intent = new Intent(FingerprintShowActivity.this, MovieViewActivity.class);
     startActivity(intent);
   }
 

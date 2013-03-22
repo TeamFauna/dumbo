@@ -1,5 +1,8 @@
 import re
 import urllib2
+import HTMLParser
+
+htmlParser = HTMLParser.HTMLParser()
 
 class IMDBParser:
   def __init__(self, castFilePath):
@@ -42,11 +45,13 @@ class IMDBParser:
   def getBio_(self, page):
     bio = re.search('<span itemprop="description">(.+?)<', page, re.DOTALL)
     if bio is None:
-      return self.getMovieAppearances_(page)
-    bio = bio.group(1)
-    if bio[-3:] != '...':
-      bio = bio.strip() + '...'
-    return bio
+      result = self.getMovieAppearances_(page)
+    else:
+      bio = bio.group(1)
+      if bio[-3:] != '...':
+        bio = bio.strip() + '...'
+      result = bio
+    return htmlParser.unescape(result).encode('utf8')
 
   def getPic_(self, page):
     return re.search('id="img_primary".*?<img\s+src="(.*?)"', page, re.DOTALL).group(1)
@@ -63,3 +68,4 @@ class IMDBParser:
 
   def getURL_(self, link):
     return 'http://www.imdb.com' + re.search('/name/[a-z0-9]+/|/character/[a-z0-9]+/', link).group(0)
+

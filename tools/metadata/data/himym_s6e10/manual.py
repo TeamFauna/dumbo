@@ -12,6 +12,5 @@ trivia = [{
     'trivia': """The method by which the curse of the 'Blitz' is passed from one person to another (a trail of mist going to and from the mouth) is a visual in-joke to the Buffy episode Buffy the Vampire Slayer: Hush were people magically lose their voices in an identical manner."""
   }, {
     'line': 'But I was on that island',
-    'trivia': """The character name of the original Blitz is Matt Blitz. Matthew Blitz is one of the production staff for the show."""
+    'trivia': """When Steve "The Blitz" Henry describes being cursed by being the Blitz, he compares it to "being stuck on an island for ages." Jorge Garcia is most famous for his role on Lost."""
 }]
-
