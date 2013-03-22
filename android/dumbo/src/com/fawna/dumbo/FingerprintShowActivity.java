@@ -1,5 +1,6 @@
 package com.fawna.dumbo;
 
+import android.app.ActionBar;
 import android.app.Activity;
 import android.graphics.drawable.AnimationDrawable;
 import android.graphics.drawable.ClipDrawable;
@@ -7,6 +8,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Display;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -57,14 +59,15 @@ public class FingerprintShowActivity extends Activity
                       Date nowTime = new Date();
                       long timeDiff = nowTime.getTime() - startDate.getTime();
 
-                      ImageView clip = (ImageView)findViewById(R.id.clip_button);
-                      final ClipDrawable drawable = (ClipDrawable) clip.getDrawable();
+                      final ImageView bar = (ImageView)findViewById(R.id.clip_button);
+                      final ClipDrawable barClip = (ClipDrawable)bar.getDrawable();
+
                       float perc = (float)timeDiff / maxTime;
                       final int level = Math.round(perc * 10000);
 
                       runOnUiThread(new Runnable() {
                           public void run() {
-                             drawable.setLevel(Math.min(level, 10000));
+                              barClip.setLevel(Math.min(level, 10000));
                           }
                       });
 
@@ -89,8 +92,14 @@ public class FingerprintShowActivity extends Activity
 
       final Button button = (Button)findViewById(R.id.button_identify);
       button.setText(R.string.identify_button_text);
-      ImageView img = (ImageView)findViewById(R.id.mic_animation);
+      button.setEnabled(true);
+
+      ImageView img = (ImageView)findViewById(R.id.mic_animation_red);
       img.setVisibility(View.INVISIBLE);
+
+      ImageView bar = (ImageView)findViewById(R.id.clip_button);
+      ClipDrawable barClip = (ClipDrawable)bar.getDrawable();
+      barClip.setLevel(0);
   }
 
   private void layoutCover() {

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <clip xmlns:android="http://schemas.android.com/apk/res/android"
       android:layout_width="fill_parent"
-      android:drawable="@drawable/btnbg_identify_normal"
+      android:scaleType="center"
+      android:drawable="@drawable/microphone_animation"
       android:clipOrientation="horizontal"
       android:gravity="left" />
