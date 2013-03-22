@@ -41,6 +41,6 @@
                   android:text="blah blah blah"
                   android:maxLines="6"
                   android:ellipsize="end"
-                android:padding="5dp" />
+                android:paddingBottom="10dp" />
     </RelativeLayout>
 </FrameLayout>
