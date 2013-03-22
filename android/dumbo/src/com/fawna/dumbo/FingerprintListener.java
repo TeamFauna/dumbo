@@ -23,7 +23,7 @@ import java.util.ArrayList;
 
 public class FingerprintListener implements AudioFingerprinterListener
 {
-  boolean recording, resolved;
+  boolean recording, resolved, found;
   Fingerprinter fingerprinter;
   FingerprintShowActivity act;
   boolean DEBUG = false;
@@ -108,6 +108,16 @@ public class FingerprintListener implements AudioFingerprinterListener
   public void didFinishListening() 
   {         
     recording = false;
+    if (!found) { 
+      Activity activity = (Activity) act;
+      activity.runOnUiThread(new Runnable() 
+      {   
+        public void run() 
+        {
+          act.didNotFindMatchForCode();
+        }
+      });
+    }
   }
   
   public void didFinishListeningPass()
@@ -117,6 +127,7 @@ public class FingerprintListener implements AudioFingerprinterListener
   {
     recording = true;
     resolved = false;
+    found = false;
   }
 
   public void willStartListeningPass() 
@@ -127,6 +138,8 @@ public class FingerprintListener implements AudioFingerprinterListener
   }
 
   public void didFindMatchForCode(final JSONObject table, String code) {
+
+    found = true;
     final MovieInfo mi = new MovieInfo(table);
     //Return MovieInfo
     Activity activity = (Activity) act;
@@ -144,15 +157,6 @@ public class FingerprintListener implements AudioFingerprinterListener
     resolved = true;
 
     prepareForPickerActivity();
-
-    Activity activity = (Activity) act;
-    activity.runOnUiThread(new Runnable() 
-    {   
-      public void run() 
-      {
-        act.didNotFindMatchForCode();
-      }
-    });
 
   }
 
@@ -204,14 +208,6 @@ public class FingerprintListener implements AudioFingerprinterListener
     resolved = true;
     prepareForPickerActivity();
 
-    Activity activity = (Activity) act;
-    activity.runOnUiThread(new Runnable() 
-    {   
-      public void run() 
-      {
-        act.didNotFindMatchForCode();
-      }
-    });
   }
 
   private static String convertStreamToString(InputStream is) 
