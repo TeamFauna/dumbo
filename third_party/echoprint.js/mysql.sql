@@ -10,7 +10,8 @@ CREATE TABLE IF NOT EXISTS `movies` (
   `code_version` char(4) NOT NULL,
   `name` varchar(255) DEFAULT NULL,
   `imdb_url` varchar(255) DEFAULT NULL,
-  `length` int NOT NULL,
+  `summary` text DEFAULT NULL,
+  `length` int DEFAULT NULL,
   `import_date` datetime NOT NULL,
   PRIMARY KEY (`id`)
 ) DEFAULT CHARSET=utf8;
