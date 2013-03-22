@@ -37,7 +37,7 @@ class LineParser:
     return (actor, phrase)
 
   def parseLine2_(self, line):
-    if len(line) is 0:
+    if len(line) is 0 or line[0] is '[':
       return (None, None)
     colonIndex = line.find(':')
     if colonIndex < 0:

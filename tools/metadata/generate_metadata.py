@@ -1,6 +1,5 @@
 """
 Generates movie metadata in the following format:
-
 {
   imdb_url: "",
   name: "",
@@ -89,7 +88,7 @@ def generateMetadata(path):
 
   def printJson():
     # this will crash if the string contains any non-ascii characters
-    print json.dumps({
+    json.dumps({
         "imdb_url": manual.url,
         "name": manual.name,
         "summary": manual.summary,
@@ -106,7 +105,7 @@ def generateMetadata(path):
 
   characterLines = LineParser(transcriptPath, path).getLines()
   lineTimestamper = LineTimestamper(subtitlePath)
-  #actorInfo = IMDBParser(imdbInfo).getActorInfo()
+  actorInfo = IMDBParser(imdbInfo).getActorInfo()
 
   printJson()
 
