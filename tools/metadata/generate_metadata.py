@@ -91,6 +91,7 @@ def generateMetadata(path):
     print json.dumps({
         "imdb_url": manual.url,
         "name": manual.name,
+        "summary": manual.summary,
         "roles": getRoles(),
         "actors": getActors(),
         "role_events": getRoleEvents(),
