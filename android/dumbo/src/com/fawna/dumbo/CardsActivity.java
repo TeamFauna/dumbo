@@ -30,6 +30,8 @@ public class CardsActivity extends ListActivity {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.cardsview);
 
+    Log.d("Fingerprinter", "IN CARDSACTIVITY");
+
     timer = new Timer();
 
     if (movieInfo == null) {
