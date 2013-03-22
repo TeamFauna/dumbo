@@ -30,7 +30,6 @@ class LineTimestamper:
     bestConfidence = 0
     results.reverse()
     for (result, confidence) in results:
-      print result, confidence
       confidence += 3 if result > self.lastTimestamp else 0
       if confidence > bestConfidence:
         bestConfidence = confidence
@@ -65,20 +64,24 @@ class LineTimestamper:
       if len(sentence) > 4: yield sentence
 
   def exactMatch_(self, phrase):
-    for result in re.finditer(phrase, self.subs):
+    for result in self.getMatchedSubbedPhrases_(phrase, "}"):
       yield (result.start(), len(phrase), phrase)
 
   def noEndingPunctMatch_(self, phrase):
-    for result in re.finditer(re.sub("[.?!]", "", phrase), self.subs):
+    for result in self.getMatchedSubbedPhrases_(phrase, "[.?!]"):
       yield (result.start(), len(phrase) * .97, phrase)
 
   def noPunctMatch_(self, phrase):
-    for result in re.finditer(re.sub("[.,?!]", "", phrase), self.subs):
+    for result in self.getMatchedSubbedPhrases_(phrase, "[.,?!]"):
       yield (result.start(), len(phrase) * .94, phrase)
 
   def charOnlyMatch_(self, phrase):
-    for result in re.finditer(re.sub("[;:'\".,?!]", "", phrase), self.subs):
+    for result in self.getMatchedSubbedPhrases_(phrase, "[;:'\".,?!]"):
       yield (result.start(), len(phrase) * .91, phrase)
+
+  def getMatchedSubbedPhrases_(self, phrase, sub):
+    for result in re.finditer(re.escape(re.sub(sub, "", phrase)), self.subs):
+      yield result
 
   def getTimestampForIndex_(self, index):
     timeEnd = self.subs.rfind(' --> ', 0, index)
