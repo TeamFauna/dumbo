@@ -106,7 +106,7 @@ public class TestFingerprinter extends Activity implements AudioFingerprinterLis
 
   public void didGenerateFingerprintCode(String code) 
   {
-    //status.setText("Will fetch info for code starting:\n" + code.substring(0, Math.min(50, code.length())));
+    status.setText("Will fetch info for code starting:\n" + code.substring(0, Math.min(50, code.length())));
   }
 
   public void didFindMatchForCode(final JSONObject response,
@@ -127,12 +127,12 @@ public class TestFingerprinter extends Activity implements AudioFingerprinterLis
   public void didNotFindMatchForCode(String code) 
   {
     resolved = true;
-    //status.setText("No match for code starting with: \n" + code.substring(0, Math.min(50, code.length())));
+    status.setText("No match for code starting with: \n" + code.substring(0, Math.min(50, code.length())));
   }
 
   public void didFailWithException(Exception e) 
   {
     resolved = true;
-    //status.setText("Error: " + e);
+    status.setText("Error: " + e);
   }
 }

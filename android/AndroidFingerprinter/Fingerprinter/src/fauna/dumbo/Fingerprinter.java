@@ -231,15 +231,16 @@ public class Fingerprinter implements Runnable
           Log.d("Fingerprinter","BUffersize: " + bufferSize + " samplesIn: " + samplesIn);
           do 
           {         
-            int req = bufferSize*3 - samplesIn;
-            //Log.d("Fingerprinter","BUffersize: " + bufferSize + " samplesIn: " + samplesIn + " req: " +req);
+            int req = bufferSize*runs - samplesIn;
+            Log.d("Fingerprinter","BUffersize: " + bufferSize + " samplesIn: " + samplesIn + " req: " +req);
             samplesIn += mRecordInstance.read(audioData, samplesIn, req);
 
             if(mRecordInstance.getRecordingState() == AudioRecord.RECORDSTATE_STOPPED)
               break;
 
-            if(samplesIn >= bufferSize * runs) {
+            if(samplesIn >= bufferSize * runs && runs < 3) {
               Log.d("Fingerprinter","BUffersize: " + bufferSize + " samplesIn: " + samplesIn + " req: " +req);
+              Log.d("FingerprinterThread","Run: " +runs);
               runs += 1;
               final int fruns = runs - 1;
               final int nSamples = samplesIn;
@@ -254,6 +255,19 @@ public class Fingerprinter implements Runnable
             }
           } 
           while (samplesIn < bufferSize*3);       
+          if (!this.success) { 
+              Log.d("FingerprinterThread","Run: " +runs);
+              final int fruns = 3;
+              final int nSamples = samplesIn;
+              Thread newT = new Thread() {
+                @Override
+                public void run() { 
+                  runAllPass(nSamples, fruns); 
+                }
+              };
+              newT.start();
+          }
+
           Log.d("Fingerprinter", "Audio recorded: " + (System.currentTimeMillis() - time) + " millis");
 
           // see if the process was stopped.
@@ -295,7 +309,7 @@ public class Fingerprinter implements Runnable
     }
     this.isRunning = false;
 
-    while (finished < 3 && !this.success) { 
+    while (this.finished < 3 && !this.success) { 
     }
     didFinishListening();
   }
@@ -363,12 +377,12 @@ public class Fingerprinter implements Runnable
 
             if(jobj.getBoolean("success"))
             {
-              this.success = true;
-              stop();
               if(jobj.has("match"))
               {
+                this.success = true;
+                stop();
                 JSONObject match = jobj.getJSONObject("match");
-                match.put("flength", (nums) * 10);
+                match.put("flength", nums * 10);
                 didFindMatchForCode(match, code);
               }
               else
