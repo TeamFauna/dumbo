@@ -40,6 +40,7 @@
                   android:layout_toRightOf="@id/comment_photo"
                   android:text="blah blah blah"
                   android:maxLines="6"
-                  android:ellipsize="end"/>
+                  android:ellipsize="end"
+                android:padding="5dp" />
     </RelativeLayout>
 </FrameLayout>
