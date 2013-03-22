@@ -197,7 +197,33 @@ function updateMovie(id, movie, callback) {
       return callback(err, null);
     }
 
-    insertMetadata(id, movie, callback);
+    deleteMetadata(id, function(err) {
+      insertMetadata(id, movie, callback);
+    });
+  });
+}
+
+function deleteMetadata(id, callback) {
+  var sql = 'DELETE FROM role_events WHERE movie = ?';
+  client.query(sql, [id], function(err, info) {
+    if (err) {
+      callback(err);
+    }
+
+    var sql = 'DELETE FROM roles WHERE id NOT IN (SELECT role FROM role_events)';
+    client.query(sql, [], function(err, info) {
+      if (err) {
+        callback(err);
+      }
+
+      var sql = 'DELETE FROM actors WHERE id NOT IN (SELECT actor FROM roles)';
+      client.query(sql, [], function(err, info) {
+        if (err) {
+          callback(err);
+        }
+        callback(null);
+      });
+    });
   });
 }
 
