@@ -90,8 +90,12 @@ def generateMetadata(path):
     plotEvents = []
     for trivia in manual.trivia:
       lineTimestamper.reset()
+      if 'time' in trivia:
+        time = trivia['time']
+      else:
+        time = lineTimestamper.timestamp(trivia['line'])
       plotEvents.append({
-          'time_stamp': lineTimestamper.timestamp(trivia['line']),
+          'time_stamp': time,
           'plot': trivia['trivia']
       })
     return plotEvents
