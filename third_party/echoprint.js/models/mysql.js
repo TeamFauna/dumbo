@@ -109,7 +109,7 @@ function getEvents(movie_id, movie, callback) {
 
   var sql =
     'SELECT re.time_stamp, re.blurb, r.name as role, r.imdb_url as role_imdb, ' +
-      'a.name as actor, a.imdb_url as actor_imdb, a.picture_url as picture_url ' +
+      'a.name as actor, a.imdb_url as actor_imdb, a.picture_url as picture_url, ' +
       'a.bio as bio ' +
       'FROM role_events re, roles r, actors a ' +
       'WHERE re.movie = ? AND re.role = r.id AND r.actor = a.id';
