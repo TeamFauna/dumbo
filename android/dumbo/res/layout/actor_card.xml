@@ -31,7 +31,7 @@
                   android:layout_marginTop="13dp"
                   android:layout_toRightOf="@id/plot_point_icon"
                   android:text="New Actor Appeared!"
-                  android:textColor="#777777"
+                  android:textColor="#999999"
                   android:id="@+id/actor_description_header"
                 />
         <TextView android:layout_height="wrap_content"
@@ -39,6 +39,7 @@
                   android:layout_marginTop="10dp"
                   android:textSize="26dp"
                   android:textStyle="bold"
+                  android:paddingRight="10dp"
                   android:lineSpacingExtra="2dp"
                   android:id="@+id/actor_name"
                   android:layout_below="@id/plot_point_icon"
@@ -59,7 +60,7 @@
                 android:layout_height="1dp"
                 android:layout_marginTop="5dp"
                 android:layout_marginRight="10dp"
-                android:background="#777777"
+                android:background="#999999"
                 android:layout_toRightOf="@id/actor_photo"
                 android:layout_below="@id/actor_bio"
                 />
