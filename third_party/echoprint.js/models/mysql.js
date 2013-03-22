@@ -164,7 +164,7 @@ function getEvents(movie_id, movie, callback) {
             time_stamp: comment.time_stamp,
             type: 'COMMENT',
             text: comment.comment,
-            namd: comment.name
+            name: comment.name
           });
         }
 

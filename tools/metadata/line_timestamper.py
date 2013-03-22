@@ -55,7 +55,7 @@ class LineTimestamper:
         yield phrase[start:start + length].strip()
         start += length
       if length + 4 < len(phrase):
-        yield phrase[:-length]
+        yield phrase[-length:]
 
   def splitOn_(self, phrase, regex):
     sentences = [sentence.strip() for sentence in re.split(regex, phrase)]
