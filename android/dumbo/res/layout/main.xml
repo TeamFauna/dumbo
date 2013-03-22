@@ -29,11 +29,28 @@
                 android:textStyle="bold"
                 />
         <ImageView
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:layout_alignParentLeft="true"
+                android:scaleType="fitXY"
+                android:id="@+id/clip_button"
+                android:src="@drawable/clip"
+                />
+        <ImageView
                 android:layout_width="56dp"
                 android:layout_height="31dp"
                 android:id="@+id/mic_animation"
                 android:layout_centerInParent="true"
                 android:background="@drawable/icon_microphone_0"
+                android:scaleType="matrix"
+                android:visibility="invisible"
+                />
+        <ImageView
+                android:layout_width="56dp"
+                android:layout_height="31dp"
+                android:id="@+id/mic_animation_red"
+                android:layout_centerInParent="true"
+                android:background="@drawable/icon_microphone_0_red"
                 android:scaleType="matrix"
                 android:visibility="invisible"
                 />

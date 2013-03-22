@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<animation-list xmlns:android="http://schemas.android.com/apk/res/android"
+                android:id="@+id/micanimation" android:oneshot="false">
+    <item android:drawable="@drawable/icon_microphone_0_red" android:duration="400" />
+    <item android:drawable="@drawable/icon_microphone_1_red" android:duration="400" />
+    <item android:drawable="@drawable/icon_microphone_2_red" android:duration="400" />
+</animation-list>
