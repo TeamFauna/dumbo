@@ -83,7 +83,8 @@ def generateMetadata(path):
     characters = []
     for (actorIndex, actor) in enumerate(actorInfo.keys()):
       info = actorInfo[actor]
-      characters.append({ "name": info['role'], "actor": actorIndex, "imdb_url": info['characterURL'] })
+      for role in info['role'].split(' / '):
+        characters.append({ "name": role, "actor": actorIndex, "imdb_url": info['characterURL'] })
     return characters
 
   def getPlotEvents():
@@ -130,5 +131,5 @@ def generateMetadata(path):
 
 
 if __name__ == "__main__":
-  generateMetadata('futurama_s1e9')
-  #generateMetadata('himym_s6e10')
+  #generateMetadata('futurama_s1e9')
+  generateMetadata('himym_s6e10')
