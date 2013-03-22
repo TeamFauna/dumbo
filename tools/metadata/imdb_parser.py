@@ -22,8 +22,7 @@ class IMDBParser:
       picURL = re.findall('<td class="hs">.*?src="(.+?)"', row)
       if picURL != None:
         picURL = picURL[0].replace('SX23_SY30_.jpg', 'SX214_CR0,0,214,314_.jpg')
-      print actorURL, characterURL, picURL
-      bio = self.getBio_(actorURL) if actorURL else None
+      (bio, picURL) = self.getDetailedActorInfo_(actorURL) if actorURL else None
 
       self.actorInfo[actorName] = {
         'role': characterName,
@@ -34,9 +33,13 @@ class IMDBParser:
       }
     return self.actorInfo
 
-  def getBio_(self, actorURL):
+  def getDetailedActorInfo_(self, actorURL):
     request = urllib2.urlopen(actorURL)
     page = request.read()
+    results = (self.getBio_(page), self.getPic_(page))
+    return results
+
+  def getBio_(self, page):
     bio = re.search('<span itemprop="description">(.+?)<', page, re.DOTALL)
     if bio is None:
       return self.getMovieAppearances_(page)
@@ -44,6 +47,9 @@ class IMDBParser:
     if bio[-3:] != '...':
       bio = bio.strip() + '...'
     return bio
+
+  def getPic_(self, page):
+    return re.search('id="img_primary".*?<img\s+src="(.*?)"', page, re.DOTALL).group(1)
 
   def getMovieAppearances_(self, page):
     movies = re.findall('<div\s*class="filmo-row.*?<a\s*onclick=.*?>\s*(.*?)\s*</a>', page, re.DOTALL)

@@ -11,6 +11,7 @@ class LineTimestamper:
   def __init__(self, subtitlesPath):
     self.subs = open(subtitlesPath, 'r').read().lower()
     self.reset()
+    self.matchers = [self.exactMatch_, self.noEndingPunctMatch_, self.noPunctMatch_, self.charOnlyMatch_]
 
   def reset(self):
     self.lastTimestamp = 0
@@ -29,6 +30,7 @@ class LineTimestamper:
     bestConfidence = 0
     results.reverse()
     for (result, confidence) in results:
+      print result, confidence
       confidence += 3 if result > self.lastTimestamp else 0
       if confidence > bestConfidence:
         bestConfidence = confidence
@@ -37,10 +39,9 @@ class LineTimestamper:
 
   def findPotentialMatches_(self, fullPhrase):
     for phrase in self.getSubPhrases_(fullPhrase):
-      yield self.exactMatch_(phrase)
-      yield self.noEndingPunctMatch_(phrase)
-      yield self.noPunctMatch_(phrase)
-      yield self.charOnlyMatch_(phrase)
+      for matcher in self.matchers:
+        for match in matcher(phrase):
+          yield match
 
   def getSubPhrases_(self, phrase):
     yield phrase
@@ -64,16 +65,20 @@ class LineTimestamper:
       if len(sentence) > 4: yield sentence
 
   def exactMatch_(self, phrase):
-    return (self.subs.find(phrase), len(phrase), phrase)
+    for result in re.finditer(phrase, self.subs):
+      yield (result.start(), len(phrase), phrase)
 
   def noEndingPunctMatch_(self, phrase):
-    return (self.subs.find(re.sub("[.?!]", "", phrase)), len(phrase) * .97, phrase)
+    for result in re.finditer(re.sub("[.?!]", "", phrase), self.subs):
+      yield (result.start(), len(phrase) * .97, phrase)
 
   def noPunctMatch_(self, phrase):
-    return (self.subs.find(re.sub("[.,?!]", "", phrase)), len(phrase) * .95, phrase)
+    for result in re.finditer(re.sub("[.,?!]", "", phrase), self.subs):
+      yield (result.start(), len(phrase) * .94, phrase)
 
   def charOnlyMatch_(self, phrase):
-    return (self.subs.find(re.sub("[;:'\".,?!]", "", phrase)), len(phrase) * .9, phrase)
+    for result in re.finditer(re.sub("[;:'\".,?!]", "", phrase), self.subs):
+      yield (result.start(), len(phrase) * .91, phrase)
 
   def getTimestampForIndex_(self, index):
     timeEnd = self.subs.rfind(' --> ', 0, index)

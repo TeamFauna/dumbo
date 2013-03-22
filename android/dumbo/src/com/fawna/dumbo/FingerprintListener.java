@@ -18,6 +18,8 @@ import android.app.Activity;
 import fauna.dumbo.Fingerprinter;
 import fauna.dumbo.Fingerprinter.AudioFingerprinterListener;
 import android.util.Log;
+import org.json.JSONArray;
+import java.util.ArrayList;
 
 public class FingerprintListener implements AudioFingerprinterListener
 {
@@ -133,58 +135,83 @@ public class FingerprintListener implements AudioFingerprinterListener
       {
         act.didFindMatchForCode(mi);
       }
-    });
+   });
     resolved = true;
   }
 
   public void didNotFindMatchForCode(String code) 
   {
     resolved = true;
-    
- /*   //Get a list of movies to use as a substitute
-    String urlstr = "http://www.willhughes.ca/echo/query";      
-    HttpClient client = new DefaultHttpClient();
-    HttpGet get = new HttpGet(urlstr);
 
-    // get response
-    HttpResponse response = client.execute(get);                
-    // Get hold of the response entity
-    HttpEntity entity = response.getEntity();
-    // If the response does not enclose an entity, there is no need
-    // to worry about connection release
+    prepareForPickerActivity();
 
-    String result = "";
-    if (entity != null) 
-    {
-        // A Simple JSON Response Read
-        InputStream instream = entity.getContent();
-        result= convertStreamToString(instream);
-        // now you have the string representation of the HTML request
-        instream.close();
-    }
-    Log.d("Fingerprinter", "Results fetched in: " + (System.currentTimeMillis() - time) + " millis");
-
-
-    Log.d("Fingerprinter", "RESULTS: " + result);
-    // parse JSON
-    JSONObject jobj = new JSONObject(result);
-
-*/
-
-/*    Activity activity = (Activity) act;
+    Activity activity = (Activity) act;
     activity.runOnUiThread(new Runnable() 
     {   
       public void run() 
       {
-        act.didNotFindMatchForCode(mi);
+        act.didNotFindMatchForCode();
       }
-    });*/
+    });
+
+  }
+
+  public void prepareForPickerActivity() {
+    try {
+      //Get a list of movies to use as a substitute
+      String urlstr = "http://www.willhughes.ca/echo/list";      
+      HttpClient client = new DefaultHttpClient();
+      HttpGet get = new HttpGet(urlstr);
+
+      // get response
+      HttpResponse response = client.execute(get);                
+      // Get hold of the response entity
+      HttpEntity entity = response.getEntity();
+      // If the response does not enclose an entity, there is no need
+      // to worry about connection release
+
+      String result = "";
+      if (entity != null) 
+      {
+          // A Simple JSON Response Read
+          InputStream instream = entity.getContent();
+          result= convertStreamToString(instream);
+          // now you have the string representation of the HTML request
+          instream.close();
+      }
+      Log.d("Fingerprinter", "RESULTS: " + result);
+      // parse JSON
+      JSONObject jobj = new JSONObject(result);
+
+      JSONArray movs = jobj.getJSONArray("movies");
+
+      ArrayList<MovieStub> smovs = new ArrayList<MovieStub>();
+
+      for (int i = 0; i < movs.length(); i++) {
+        MovieStub nmo = new MovieStub(movs.getJSONObject(i));
+        smovs.add(nmo);
+      }
+      ShowPickerActivity.movies = smovs;
+    }
+    catch (Exception e) {
+      throw new RuntimeException(e);
+    }
 
   }
 
   public void didFailWithException(Exception e) 
   {
     resolved = true;
+    prepareForPickerActivity();
+
+    Activity activity = (Activity) act;
+    activity.runOnUiThread(new Runnable() 
+    {   
+      public void run() 
+      {
+        act.didNotFindMatchForCode();
+      }
+    });
   }
 
   private static String convertStreamToString(InputStream is) 
