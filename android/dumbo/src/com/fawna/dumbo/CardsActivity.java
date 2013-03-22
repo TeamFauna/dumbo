@@ -76,7 +76,9 @@ public class CardsActivity extends ListActivity {
 
   }
 
-  public void onNewCard() {
+  public void onNewCard(final String message) {
+    ListView list = getListView();
+    Toast.makeText(this, message, 3000).show();
 
   }
 
@@ -355,7 +357,7 @@ public class CardsActivity extends ListActivity {
       runOnUiThread(new Runnable() {
         @Override
         public void run() {
-          cards.add(generateActorCard(event.actor_name, event.actor_picture, "http://www.imdb.com" + event.actor_imdb));
+          cards.add(generateActorCard(event.actor_name, event.actor_picture, event.actor_imdb));
           observer.onChanged();
         }
       });
