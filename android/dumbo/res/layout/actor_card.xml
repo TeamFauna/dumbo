@@ -75,7 +75,7 @@
                 />
         <TextView
                 android:layout_width="fill_parent"
-                android:layout_height="15dp"
+                android:layout_height="11dp"
                 android:layout_toRightOf="@id/actor_photo"
                 android:layout_below="@id/actor_imdb"
                 />
