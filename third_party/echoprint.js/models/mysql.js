@@ -206,7 +206,9 @@ function updateMovie(id, movie, callback) {
 function deleteMetadata(id, callback) {
   var sql = 'DELETE FROM plot_events WHERE movie = ?';
   client.query(sql, [id], function(err, info) {
-    log.error('Could not delete plot events of movie_id = ' + id);
+    if (err) {
+      log.error('Could not delete plot events of movie_id = ' + id);
+    }
   });
 
   var sql = 'DELETE FROM role_events WHERE movie = ?';
