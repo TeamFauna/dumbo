@@ -8,7 +8,6 @@ import java.io.InputStreamReader;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.entity.StringEntity;
@@ -126,7 +125,7 @@ public class ShowPickerActivity extends Activity {
           JSONObject match = jobj.getJSONObject("match");
           final MovieInfo mov = new MovieInfo(match);
           mov.time = seconds;
-          CardsActivity.movieInfo = mov;
+          CardsFragment.movieInfo = mov;
           runOnUiThread(new Runnable() 
           {   
             public void run() 
@@ -150,7 +149,7 @@ public class ShowPickerActivity extends Activity {
 
   // TODO Will use me
   public void didFindMatchForCode() {
-    Intent intent = new Intent(this, CardsActivity.class);
+    Intent intent = new Intent(this, MovieViewActivity.class);
     startActivity(intent);
   }
 

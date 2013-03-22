@@ -88,7 +88,8 @@ def generateMetadata(path):
     return plotEvents
 
   def printJson():
-    json.dumps({
+    # this will crash if the string contains any non-ascii characters
+    print json.dumps({
         "imdb_url": manual.url,
         "name": manual.name,
         "summary": manual.summary,

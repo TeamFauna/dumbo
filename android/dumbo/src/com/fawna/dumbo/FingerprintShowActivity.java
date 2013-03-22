@@ -1,17 +1,23 @@
 package com.fawna.dumbo;
 
+import android.app.ActionBar;
 import android.app.Activity;
 import android.graphics.drawable.AnimationDrawable;
+import android.graphics.drawable.ClipDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Display;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.content.Intent;
 import android.view.View;
+
+import java.util.Date;
+import java.util.Timer;
+import java.util.TimerTask;
 
 
 public class FingerprintShowActivity extends Activity 
@@ -35,12 +41,40 @@ public class FingerprintShowActivity extends Activity
       button.setOnClickListener(new View.OnClickListener() {
           public void onClick(View view) {
               button.setText("");
+              button.setEnabled(false);
 
-              ImageView img = (ImageView)findViewById(R.id.mic_animation);
-              img.setBackgroundResource(R.drawable.microphone_animation);
+              ImageView img = (ImageView)findViewById(R.id.mic_animation_red);
+              img.setBackgroundResource(R.drawable.microphone_animation_red);
               AnimationDrawable frameAnimation = (AnimationDrawable) img.getBackground();
               frameAnimation.start();
               img.setVisibility(View.VISIBLE);
+
+              Timer t = new Timer();
+              final Date startDate = new Date();
+              final long maxTime = 30000;
+              t.schedule(new TimerTask() {
+                  @Override
+                  public void run() {
+                      Date nowTime = new Date();
+                      long timeDiff = nowTime.getTime() - startDate.getTime();
+
+                      final ImageView bar = (ImageView)findViewById(R.id.clip_button);
+                      final ClipDrawable barClip = (ClipDrawable)bar.getDrawable();
+
+                      float perc = (float)timeDiff / maxTime;
+                      final int level = Math.round(perc * 10000);
+
+                      runOnUiThread(new Runnable() {
+                          public void run() {
+                              barClip.setLevel(Math.min(level, 10000));
+                          }
+                      });
+
+                      if (perc > 1) {
+                          this.cancel();
+                      }
+                  }
+              }, 0, 10);
 
               if (!DEBUG) {
                 fingerprinter.startFingerprinting();
@@ -57,8 +91,14 @@ public class FingerprintShowActivity extends Activity
 
       final Button button = (Button)findViewById(R.id.button_identify);
       button.setText(R.string.identify_button_text);
-      ImageView img = (ImageView)findViewById(R.id.mic_animation);
+      button.setEnabled(true);
+
+      ImageView img = (ImageView)findViewById(R.id.mic_animation_red);
       img.setVisibility(View.INVISIBLE);
+
+      ImageView bar = (ImageView)findViewById(R.id.clip_button);
+      ClipDrawable barClip = (ClipDrawable)bar.getDrawable();
+      barClip.setLevel(0);
   }
 
   private void layoutCover() {
@@ -81,9 +121,8 @@ public class FingerprintShowActivity extends Activity
 
   public void didFindMatchForCode(MovieInfo table) 
   {
-    CardsActivity.movieInfo = table;
-    Intent intent = new Intent(FingerprintShowActivity.this, CardsActivity.class);
-    intent.putExtra("imdb", table.imdb);
+    CardsFragment.movieInfo = table;
+    Intent intent = new Intent(FingerprintShowActivity.this, MovieViewActivity.class);
     startActivity(intent);
   }
 
