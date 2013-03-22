@@ -110,6 +110,7 @@ function getEvents(movie_id, movie, callback) {
   var sql =
     'SELECT re.time_stamp, re.blurb, r.name as role, r.imdb_url as role_imdb, ' +
       'a.name as actor, a.imdb_url as actor_imdb, a.picture_url as picture_url ' +
+      'a.bio as bio ' +
       'FROM role_events re, roles r, actors a ' +
       'WHERE re.movie = ? AND re.role = r.id AND r.actor = a.id';
   client.query(sql, [movie_id], function(err, role_events) {
@@ -130,7 +131,8 @@ function getEvents(movie_id, movie, callback) {
         actor: {
           name: role_event.actor,
           imdb_url: role_event.actor_imdb,
-          picture_url: role_event.picture_url
+          picture_url: role_event.picture_url,
+          bio: role_event.bio
         }
       });
     }
@@ -370,12 +372,12 @@ function insertPlotEvents(movie_id, plot_events, callback) {
 
 function insertActors(actors, callback) {
   var sql = 'INSERT INTO actors ' +
-    '(name, imdb_url, picture_url) VALUES (?, ?, ?)';
+    '(name, imdb_url, picture_url, bio) VALUES (?, ?, ?, ?)';
 
   var values = [];
   for (var i = 0; i < actors.length; i++) {
     var actor = actors[i];
-    values.push([actor.name, actor.imdb_url, actor.picture_url]);
+    values.push([actor.name, actor.imdb_url, actor.picture_url, actor.bio]);
   }
 
   insertMultipleRows(sql, values, callback);
