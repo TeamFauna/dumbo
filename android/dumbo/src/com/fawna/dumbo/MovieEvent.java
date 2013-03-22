@@ -8,6 +8,7 @@ public class MovieEvent
   public long time;
   public String type;
   public String text;
+  public String commenter;
   public String role_name;
   public String role_imdb;
   public String actor_name;
@@ -17,6 +18,7 @@ public class MovieEvent
 
   public static String TYPE_PLOT = "PLOT";
   public static String TYPE_ACTOR = "ROLE";
+  public static String TYPE_COMMENT = "COMMENT";
 
   
   public MovieEvent(JSONObject event) {
@@ -25,7 +27,7 @@ public class MovieEvent
       type = event.getString("type");
       text = event.getString("text");
 
-      if (type.equals("ROLE")) {
+      if (type.equals(TYPE_ACTOR)) {
         JSONObject role = event.getJSONObject("role");
         role_name = role.getString("name");
         role_imdb = role.getString("imdb_url");
@@ -35,6 +37,8 @@ public class MovieEvent
         actor_imdb = actor.getString("imdb_url");
         actor_picture = actor.getString("picture_url");
         actor_bio = actor.getString("bio");
+      } else if (type.equals(TYPE_COMMENT)) {
+        commenter = event.getString("name");
       }
     }
     catch (Exception e) { 

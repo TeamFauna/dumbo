@@ -64,8 +64,9 @@
                 android:layout_toRightOf="@id/actor_photo"
                 android:layout_below="@id/actor_bio"
                 />
-        <Button android:layout_height="21dp"
-                android:layout_width="124dp"
+        <Button android:layout_height="32dp"
+                android:layout_width="190dp"
+                android:scaleType="fitXY"
                 android:id="@+id/actor_imdb"
                 android:background="@drawable/button_learn_more"
                 android:layout_toRightOf="@id/actor_photo"
@@ -74,7 +75,7 @@
                 />
         <TextView
                 android:layout_width="fill_parent"
-                android:layout_height="15dp"
+                android:layout_height="11dp"
                 android:layout_toRightOf="@id/actor_photo"
                 android:layout_below="@id/actor_imdb"
                 />

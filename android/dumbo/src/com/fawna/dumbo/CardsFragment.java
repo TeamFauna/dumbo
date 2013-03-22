@@ -18,6 +18,8 @@ import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.*;
 
 import java.io.InputStream;
@@ -87,7 +89,7 @@ public class CardsFragment extends ListFragment {
     ListView list = getListView();
     if (list.getLastVisiblePosition() >= getListAdapter().getCount() - 1) {
       //list.smoothScrollToPosition(getListAdapter().getCount() - 1);
-      list.smoothScrollBy(900, 1000);
+      list.smoothScrollBy(1200, 1400);
     } else if (getListAdapter().getCount() > 1) {
       Toast.makeText(list.getContext(), message, 3000).show();
     }
@@ -144,8 +146,34 @@ public class CardsFragment extends ListFragment {
     } else {
         imdbView.setVisibility(View.GONE);
     }
-    UrlImageLoader.loadImage((ImageView)actor.findViewById(R.id.actor_photo), photoUrl, 240);
+    UrlImageLoader.loadImage((ImageView) actor.findViewById(R.id.actor_photo), photoUrl, 240);
     return actor;
+  }
+
+  private View generateCommentCard(final String commenter, final String comment) {
+    View commentView = inflater.inflate(R.layout.comment, null);
+
+    TextView commenterView = (TextView) commentView.findViewById(R.id.commenter);
+    commenterView.setText(commenter);
+    setTypeface(commenterView, "fonts/avenir_heavy.otf");
+
+    TextView commentContentView = (TextView) commentView.findViewById(R.id.comment_content);
+    commentContentView.setText(comment);
+
+    //munn
+    String photoUrl = "https://fbcdn-sphotos-f-a.akamaihd.net/hphotos-ak-ash4/401335_10150475831548909_1801597514_n.jpg";
+    if ("Will Hughes".equals(commenter)) {
+      photoUrl = "https://fbcdn-sphotos-f-a.akamaihd.net/hphotos-ak-prn1/30983_10151248393758941_974643920_n.jpg";
+    } else if ("Fravic Fernando".equals(commenter)) {
+      photoUrl = "https://fbcdn-sphotos-g-a.akamaihd.net/hphotos-ak-ash4/392990_10200235523073002_283762175_n.jpg";
+    } else if ("Andrew Russell".equals(commenter)) {
+      photoUrl = "https://fbcdn-sphotos-e-a.akamaihd.net/hphotos-ak-prn1/856215_10200626685291813_1040285666_o.jpg";
+    } else if ("Noah Sugarman".equals(commenter)) {
+      photoUrl = "https://fbcdn-sphotos-a-a.akamaihd.net/hphotos-ak-prn1/16593_10200352135392016_544194112_n.jpg";
+    }
+    UrlImageLoader.loadImage((ImageView) commentView.findViewById(R.id.comment_photo), photoUrl, 100);
+
+    return commentView;
   }
 
   private View generatePlotCard(final String name, final String description, final boolean showEpDescription) {
@@ -174,7 +202,7 @@ public class CardsFragment extends ListFragment {
       @Override
       public void onClick(View v) {
         Intent openImdb = new Intent(Intent.ACTION_VIEW);
-        openImdb.setData(Uri.parse(isHIMYM ? "http://www.imdb.com/title/tt1777828/" : "http://www.imdb.com/title/tt0120737/"));
+        openImdb.setData(Uri.parse(isHIMYM ? "http://www.imdb.com/title/tt1777828/" : "http://www.imdb.com/title/tt0584441/"));
         startActivity(openImdb);
       }
     });
@@ -242,15 +270,6 @@ public class CardsFragment extends ListFragment {
 
       cards = new ArrayList<View>();
       seenActors = new HashSet<String>();
-
-      //test cards
-      //View actor1 = generateActorCard("Josh Radnor", "http://ia.media-imdb.com/images/M/MV5BMjAwNTUxMTM4OF5BMl5BanBnXkFtZTcwNjUyNzc4Mg@@._V1._SY314_CR3,0,214,314_.jpg", "http://www.imdb.com/name/nm1102140/");
-      //View actor2 = generateActorCard("Jason Segel", "http://ia.media-imdb.com/images/M/MV5BMTI2NTQ4MTM1MV5BMl5BanBnXkFtZTcwODEzNzQ4Mg@@._V1._SX214_CR0,0,214,314_.jpg", "http://www.imdb.com/name/nm0781981/");
-      //View description = generatePlotCard("Blitzgiving", "When Ted leaves the bar early to prepare a Thanksgiving feast for his friends, the gang winds up partying all night with The Blitz, an old friend from college who has bad luck. As a result, Ted is forced to spend Thanksgiving with Zoey.");
-
-      //cards.add(description);
-      //cards.add(actor1);
-      //cards.add(actor2);
     }
 
     public void addMovieData() {
@@ -266,6 +285,10 @@ public class CardsFragment extends ListFragment {
           AddActorEvent addActorEvent = new AddActorEvent(event, cards, list);
           long fireTime = (event.time - movieInfo.time) * 1000;
           timer.schedule(addActorEvent, Math.max(0, fireTime));
+        } else if (event.type.equals(MovieEvent.TYPE_COMMENT) && event.time >= movieInfo.time) {
+          AddCommentEvent addCommentEvent = new AddCommentEvent(event, cards, list);
+          long fireTime = (event.time - movieInfo.time) * 1000;
+          timer.schedule(addCommentEvent, StrictMath.max(0, fireTime));
         }
       }
     }
@@ -323,7 +346,12 @@ public class CardsFragment extends ListFragment {
       }  else if (position == 2) {
         return summary;
       }
-      return cards.get(position - EXTRA_VIEWS);
+      View v = cards.get(position - EXTRA_VIEWS);
+      if (position == cards.size() - 1) {
+          Animation animation = AnimationUtils.loadAnimation(getActivity(), R.anim.fadein);
+          v.startAnimation(animation);
+      }
+      return v;
     }
 
     @Override
@@ -396,34 +424,30 @@ public class CardsFragment extends ListFragment {
     }
   }
 
+  public class AddCommentEvent extends TimerTask {
+    final MovieEvent event;
+    final List<View> cards;
+    final DataSetObserver observer;
 
-  private class DownloadImageTask extends AsyncTask<String, Void, Bitmap> {
-    ImageView bmImage;
-
-    public DownloadImageTask(ImageView bmImage) {
-      this.bmImage = bmImage;
+    public AddCommentEvent(MovieEvent event, final List<View> cards, final DataSetObserver observer) {
+      this.event = event;
+      this.cards = cards;
+      this.observer = observer;
     }
 
-    protected Bitmap doInBackground(String... urls) {
-      String urldisplay = urls[0];
-      Log.d("lololol", urldisplay);
-      Bitmap mIcon11 = null;
-      try {
-        InputStream in = new java.net.URL(urldisplay).openStream();
-        mIcon11 = BitmapFactory.decodeStream(in);
-      } catch (Exception e) {
-        Log.e("Error", e.getMessage());
-        e.printStackTrace();
-      }
-      return mIcon11;
-    }
-
-    protected void onPostExecute(Bitmap result) {
-      bmImage.setImageBitmap(result);
-      scaleImageToFitWidth(this.bmImage, 240);
+    @Override
+    public void run() {
+      handler.post(new Runnable() {
+        @Override
+        public void run() {
+          Log.d("lololol", "adding comment from" + event.commenter);
+          cards.add(generateCommentCard(event.commenter, event.text));
+          observer.onChanged();
+          onNewCard(event.commenter + " says \"" + event.text + "\"");
+        }
+      });
     }
   }
-
   @Override
   public void onDestroy() {
     super.onDestroy();

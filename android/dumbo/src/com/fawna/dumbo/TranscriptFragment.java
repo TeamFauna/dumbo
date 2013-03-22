@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.database.DataSetObserver;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
@@ -14,6 +15,8 @@ import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.*;
 
 import java.io.InputStream;
@@ -30,6 +33,10 @@ public class TranscriptFragment extends ListFragment {
     TranscriptAdapter adapter = new TranscriptAdapter();
     setListAdapter(adapter);
     adapter.generateQuotes();
+    getListView().setBackgroundColor(Color.rgb(196, 196, 196));
+    getListView().setDividerHeight(0);
+    getListView().setDivider(null);
+    getListView().setPadding(0, 30, 0, 0);
   }
 
   private void onNewQuote() {
@@ -42,19 +49,14 @@ public class TranscriptFragment extends ListFragment {
   private View generateQuoteCard(final String character, final String line, final String photoUrl, final String actor) {
     View quote = getActivity().getLayoutInflater().inflate(R.layout.quote, null);
 
-    TextView charView = (TextView)quote.findViewById(R.id.quote_character);
+    TextView charView = (TextView)quote.findViewById(R.id.quote_actor);
     charView.setText(character);
     setTypeface(charView, "fonts/avenir_heavy.otf");
 
-    TextView actorView = (TextView)quote.findViewById(R.id.quote_actor);
-
-    actorView.setText(actor);
-    setTypeface(actorView, "fonts/avenir_heavy.otf");
-
     TextView lineView = (TextView) quote.findViewById(R.id.quote_line);
-    lineView.setText("\"" + line + "\"");
+    lineView.setText(line);
 
-    UrlImageLoader.loadImage((ImageView) quote.findViewById(R.id.quote_photo), photoUrl, 80 );
+    UrlImageLoader.loadImage((ImageView) quote.findViewById(R.id.quote_photo), photoUrl, 80);
 
     return quote;
   }
@@ -123,7 +125,12 @@ public class TranscriptFragment extends ListFragment {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-      return lines.get(position);
+      View v = lines.get(position);
+      if (position == lines.size() - 1) {
+        Animation animation = AnimationUtils.loadAnimation(getActivity(), R.anim.fadein);
+        v.startAnimation(animation);
+      }
+      return v;
     }
 
     @Override
