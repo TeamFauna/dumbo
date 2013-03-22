@@ -69,6 +69,7 @@ CREATE TABLE IF NOT EXISTS `comments` (
   `time_stamp` int NOT NULL,
   `movie` int NOT NULL,
   `comment` text NOT NULL,
+  `name` text NOT NULL,
   PRIMARY KEY (`id`),
   INDEX (`movie`, `time_stamp`),
   FOREIGN KEY (`movie`) REFERENCES `movies`(`id`)

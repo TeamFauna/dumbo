@@ -152,7 +152,7 @@ function getEvents(movie_id, movie, callback) {
         });
       }
 
-      var sql = 'SELECT comment, time_stamp FROM comments WHERE movie = ?';
+      var sql = 'SELECT comment, time_stamp, name FROM comments WHERE movie = ?';
       client.query(sql, [movie_id], function(err, comments) {
         if (err) {
           return callback(err, null);
@@ -163,7 +163,8 @@ function getEvents(movie_id, movie, callback) {
           events.push({
             time_stamp: comment.time_stamp,
             type: 'COMMENT',
-            text: comment.comment
+            text: comment.comment,
+            namd: comment.name
           });
         }
 
@@ -442,8 +443,8 @@ function insertMultipleRows(sql, rows, callback) {
 }
 
 function addComment(comment, callback) {
-  var sql = 'INSERT INTO comments (comment, movie, time_stamp) VALUES (?, ?, ?)';
-  var values = [comment.text, comment.movie, comment.time_stamp];
+  var sql = 'INSERT INTO comments (comment, movie, time_stamp, name) VALUES (?, ?, ?, ?)';
+  var values = [comment.text, comment.movie, comment.time_stamp, comment.name];
   client.query(sql, values, function(err, info) {
     callback(err);
   });
