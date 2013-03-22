@@ -88,7 +88,7 @@ def generateMetadata(path):
     return plotEvents
 
   def printJson():
-    print json.dumps({
+    json.dumps({
         "imdb_url": manual.url,
         "name": manual.name,
         "summary": manual.summary,
@@ -105,11 +105,11 @@ def generateMetadata(path):
 
   characterLines = LineParser(transcriptPath, path).getLines()
   lineTimestamper = LineTimestamper(subtitlePath)
-  actorInfo = IMDBParser(imdbInfo).getActorInfo()
+  #actorInfo = IMDBParser(imdbInfo).getActorInfo()
 
   printJson()
 
 
 if __name__ == "__main__":
-  #generateMetadata('lotr_1ex')
-  generateMetadata('himym_s6e10')
+  generateMetadata('futurama_s1e9')
+  #generateMetadata('himym_s6e10')
