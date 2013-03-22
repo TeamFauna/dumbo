@@ -13,6 +13,7 @@ public class MovieEvent
   public String actor_name;
   public String actor_imdb;
   public String actor_picture;
+  public String actor_bio;
 
   public static String TYPE_PLOT = "PLOT";
   public static String TYPE_ACTOR = "ROLE";
@@ -33,6 +34,7 @@ public class MovieEvent
         actor_name = actor.getString("name");
         actor_imdb = actor.getString("imdb_url");
         actor_picture = actor.getString("picture_url");
+        actor_bio = actor.getString("bio");
       }
     }
     catch (Exception e) { 

@@ -23,7 +23,7 @@ public class MovieInfo
       JSONObject metadata = resp.getJSONObject("metadata");
       name = metadata.getString("name");
       imdb = metadata.getString("imdb_url");
-      summary = "TROROROROROROROROROROL";//metadata.getString("summary");
+      summary = metadata.getString("summary");
 
       //TODO parse the roles
 
