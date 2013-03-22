@@ -16,6 +16,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.*;
 
 import java.io.InputStream;
@@ -111,7 +113,7 @@ public class TranscriptFragment extends ListFragment {
     TextView lineView = (TextView) quote.findViewById(R.id.quote_line);
     lineView.setText(line);
 
-    UrlImageLoader.loadImage((ImageView) quote.findViewById(R.id.quote_photo), photoUrl, 80 );
+    UrlImageLoader.loadImage((ImageView) quote.findViewById(R.id.quote_photo), photoUrl, 80);
 
     return quote;
   }
@@ -180,7 +182,12 @@ public class TranscriptFragment extends ListFragment {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-      return lines.get(position);
+      View v = lines.get(position);
+      if (position == lines.size() - 1) {
+        Animation animation = AnimationUtils.loadAnimation(getActivity(), R.anim.fadein);
+        v.startAnimation(animation);
+      }
+      return v;
     }
 
     @Override

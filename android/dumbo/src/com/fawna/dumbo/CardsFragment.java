@@ -18,6 +18,8 @@ import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.*;
 
 import java.io.InputStream;
@@ -87,7 +89,7 @@ public class CardsFragment extends ListFragment {
     ListView list = getListView();
     if (list.getLastVisiblePosition() >= getListAdapter().getCount() - 1) {
       //list.smoothScrollToPosition(getListAdapter().getCount() - 1);
-      list.smoothScrollBy(900, 1000);
+      list.smoothScrollBy(1200, 1400);
     } else if (getListAdapter().getCount() > 1) {
       Toast.makeText(list.getContext(), message, 3000).show();
     }
@@ -144,7 +146,7 @@ public class CardsFragment extends ListFragment {
     } else {
         imdbView.setVisibility(View.GONE);
     }
-    UrlImageLoader.loadImage((ImageView)actor.findViewById(R.id.actor_photo), photoUrl, 240);
+    UrlImageLoader.loadImage((ImageView) actor.findViewById(R.id.actor_photo), photoUrl, 240);
     return actor;
   }
 
@@ -200,7 +202,7 @@ public class CardsFragment extends ListFragment {
       @Override
       public void onClick(View v) {
         Intent openImdb = new Intent(Intent.ACTION_VIEW);
-        openImdb.setData(Uri.parse(isHIMYM ? "http://www.imdb.com/title/tt1777828/" : "http://www.imdb.com/title/tt0120737/"));
+        openImdb.setData(Uri.parse(isHIMYM ? "http://www.imdb.com/title/tt1777828/" : "http://www.imdb.com/title/tt0584441/"));
         startActivity(openImdb);
       }
     });
@@ -344,7 +346,12 @@ public class CardsFragment extends ListFragment {
       }  else if (position == 2) {
         return summary;
       }
-      return cards.get(position - EXTRA_VIEWS);
+      View v = cards.get(position - EXTRA_VIEWS);
+      if (position == cards.size() - 1) {
+          Animation animation = AnimationUtils.loadAnimation(getActivity(), R.anim.fadein);
+          v.startAnimation(animation);
+      }
+      return v;
     }
 
     @Override
