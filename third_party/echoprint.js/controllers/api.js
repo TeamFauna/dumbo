@@ -54,7 +54,6 @@ function query(req, res) {
         result.match.metadata = movie;
 
         var duration = new Date() - req.start;
-        var success = !!result.success;
 
         log.debug('Completed lookup in ' + duration + 'ms. success=' +
           success + ', status=' + result.status);

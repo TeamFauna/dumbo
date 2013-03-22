@@ -24,6 +24,7 @@
         <TextView android:layout_height="wrap_content"
                   android:layout_width="wrap_content"
                   android:layout_marginTop="12dp"
+                  android:id="@+id/ep_description_header"
                   android:layout_toRightOf="@id/plot_point_icon"
                   android:text="Episode Description"/>
         <TextView android:layout_height="wrap_content"

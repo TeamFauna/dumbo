@@ -40,6 +40,7 @@ public class CardsActivity extends ListActivity {
       return;
     }
 
+
     // test data with HIMYM
     //headerView = generateHeader("http://www.imdb.com/title/tt1777828/");
     View headerView = generateHeader(movieInfo.imdb);
@@ -48,9 +49,10 @@ public class CardsActivity extends ListActivity {
 
     CardsAdapter adapter = new CardsAdapter();
     setListAdapter(adapter);
+    adapter.addMovieData();
 
 
-    scheduleClock((TextView) findViewById(R.id.current_time), movieInfo.time * 1000);
+    scheduleClock((TextView) findViewById(R.id.current_time), System.currentTimeMillis() - movieInfo.time * 1000);
 
 
     final View header = findViewById(R.id.fixed_header);
@@ -73,6 +75,12 @@ public class CardsActivity extends ListActivity {
         }
       }
     });
+
+  }
+
+  public void onNewCard(final String message) {
+    ListView list = getListView();
+    Toast.makeText(this, message, 3000).show();
 
   }
 
@@ -110,25 +118,34 @@ public class CardsActivity extends ListActivity {
     nameView.setText(name);
 
     Button imdbView = (Button) actor.findViewById(R.id.actor_imdb);
-    imdbView.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        Intent openImdb = new Intent(Intent.ACTION_VIEW);
-        openImdb.setData(Uri.parse(imdbUrl));
-        startActivity(openImdb);
-      }
-    });
-
+      if (imdbUrl != null) {
+      imdbView.setOnClickListener(new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+          Intent openImdb = new Intent(Intent.ACTION_VIEW);
+          openImdb.setData(Uri.parse(imdbUrl));
+          startActivity(openImdb);
+        }
+      });
+    } else {
+        imdbView.setVisibility(View.GONE);
+    }
     new DownloadImageTask((ImageView)actor.findViewById(R.id.actor_photo))
         .execute(photoUrl);
 
     return actor;
   }
 
-  private View generatePlotCard(final String name, final String description) {
+  private View generatePlotCard(final String name, final String description, final boolean showEpDescription) {
+
     View plotView = getLayoutInflater().inflate(R.layout.plot_point, null);
     TextView nameView = (TextView) plotView.findViewById(R.id.episode_name);
     nameView.setText(name) ;
+    if (!showEpDescription) {
+       ((TextView) plotView.findViewById(R.id.ep_description_header)).setText(name);
+       nameView.setVisibility(View.GONE);
+    }
+
     TextView descriptionView = (TextView) plotView.findViewById(R.id.episode_description);
     descriptionView.setText(description);
     return plotView;
@@ -187,23 +204,20 @@ public class CardsActivity extends ListActivity {
 
   public class CardsAdapter implements ListAdapter {
 
-    private List<View> cards;
+    final private List<View> cards;
     private View statusBar;
     final static int EXTRA_VIEWS = 2;
+    final HashSet<String> seenActors;
+    DataSetObserver list;
 
     public CardsAdapter() {
       statusBar = getLayoutInflater().inflate(R.layout.status_bar, null);
       populateStatusBar(statusBar);
 
-      scheduleClock((TextView) statusBar.findViewById(R.id.current_time), movieInfo.time * 1000);
+      scheduleClock((TextView) statusBar.findViewById(R.id.current_time), System.currentTimeMillis() - movieInfo.time * 1000);
 
       cards = new ArrayList<View>();
-
-      for (MovieEvent event: movieInfo.events) {
-         if (event.type == MovieEvent.TYPE_PLOT) {
-
-         }
-      }
+      seenActors = new HashSet<String>();
 
       //test cards
       //View actor1 = generateActorCard("Josh Radnor", "http://ia.media-imdb.com/images/M/MV5BMjAwNTUxMTM4OF5BMl5BanBnXkFtZTcwNjUyNzc4Mg@@._V1._SY314_CR3,0,214,314_.jpg", "http://www.imdb.com/name/nm1102140/");
@@ -213,6 +227,25 @@ public class CardsActivity extends ListActivity {
       //cards.add(description);
       //cards.add(actor1);
       //cards.add(actor2);
+    }
+
+    public void addMovieData() {
+      for (MovieEvent event: movieInfo.events) {
+        if (event.type.equals(MovieEvent.TYPE_PLOT)) {
+          Log.d("CardsrCool", "Found plot event at: " + event.time);
+          AddPlotEvent addPlotEvent = new AddPlotEvent(event, cards, list);
+          long fireTime = (event.time - movieInfo.time) * 1000;
+          Log.d("CardsrCool", "Firing plot event at: " + fireTime);
+          timer.schedule(addPlotEvent,  Math.max(0, fireTime));
+        } else if (event.type.equals(MovieEvent.TYPE_ACTOR)
+            && !seenActors.contains(event.actor_name)
+            && event.time >= movieInfo.time) {
+          seenActors.add(event.actor_name);
+          AddActorEvent addActorEvent = new AddActorEvent(event, cards, list);
+          long fireTime = (event.time - movieInfo.time) * 1000;
+          timer.schedule(addActorEvent, Math.max(0, fireTime));
+        }
+      }
     }
 
     @Override
@@ -227,11 +260,13 @@ public class CardsActivity extends ListActivity {
 
     @Override
     public void registerDataSetObserver(DataSetObserver observer) {
+      list = observer;
 
     }
 
     @Override
     public void unregisterDataSetObserver(DataSetObserver observer) {
+      list = null;
     }
 
     @Override
@@ -251,7 +286,7 @@ public class CardsActivity extends ListActivity {
 
     @Override
     public boolean hasStableIds() {
-      return true;
+      return false;
     }
 
     @Override
@@ -269,7 +304,7 @@ public class CardsActivity extends ListActivity {
 
     @Override
     public int getItemViewType(int position) {
-      return position;
+      return IGNORE_ITEM_VIEW_TYPE;
     }
 
     @Override
@@ -283,6 +318,54 @@ public class CardsActivity extends ListActivity {
     }
   }
 
+  public class AddPlotEvent extends TimerTask {
+    final MovieEvent event;
+    final List<View> cards;
+    final DataSetObserver observer;
+
+    public AddPlotEvent(MovieEvent event, final List<View> cards, final DataSetObserver observer) {
+      this.event = event;
+      this.cards = cards;
+      this.observer = observer;
+    }
+
+    @Override
+    public void run() {
+
+      runOnUiThread(new Runnable() {
+        @Override
+        public void run() {
+        cards.add(generatePlotCard("Did you know?", event.text, false));
+        observer.onChanged();
+        }
+      });
+    }
+  }
+
+  public class AddActorEvent extends TimerTask {
+    final MovieEvent event;
+    final List<View> cards;
+    final DataSetObserver observer;
+
+    public AddActorEvent(MovieEvent event, final List<View> cards, final DataSetObserver observer) {
+      this.event = event;
+      this.cards = cards;
+      this.observer = observer;
+    }
+
+    @Override
+    public void run() {
+
+      runOnUiThread(new Runnable() {
+        @Override
+        public void run() {
+          cards.add(generateActorCard(event.actor_name, event.actor_picture, event.actor_imdb));
+          observer.onChanged();
+        }
+      });
+    }
+  }
+
 
   private class DownloadImageTask extends AsyncTask<String, Void, Bitmap> {
     ImageView bmImage;
@@ -293,6 +376,7 @@ public class CardsActivity extends ListActivity {
 
     protected Bitmap doInBackground(String... urls) {
       String urldisplay = urls[0];
+      Log.d("lololol", urldisplay);
       Bitmap mIcon11 = null;
       try {
         InputStream in = new java.net.URL(urldisplay).openStream();

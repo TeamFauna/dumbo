@@ -92,7 +92,7 @@ function getMovie(movie_id, callback) {
 }
 
 function getMovies(callback) {
-  var sql = 'SELECT m.id, m.code_version, m.name, m.imdb_url, ' +
+  var sql = 'SELECT m.id, m.code_version, m.name, m.imdb_url, m.summary, ' +
     'm.length, m.import_date, count(c.movie_id) as codes ' +
     'FROM movies m, codes c ' +
     'WHERE m.id = c.movie_id ' +
@@ -109,7 +109,7 @@ function getEvents(movie_id, movie, callback) {
     'SELECT re.time_stamp, re.blurb, r.name as role, r.imdb_url as role_imdb, ' +
       'a.name as actor, a.imdb_url as actor_imdb, a.picture_url as picture_url ' +
       'FROM role_events re, roles r, actors a ' +
-      'WHERE re.movie = ? AND re.role = r.id AND r.actor = a.id ';
+      'WHERE re.movie = ? AND re.role = r.id AND r.actor = a.id';
   client.query(sql, [movie_id], function(err, role_events) {
     if (err) {
       return callback(err, null);
@@ -160,9 +160,17 @@ function getEvents(movie_id, movie, callback) {
 
 function insertMovie(movie, fingerprint, callback) {
   var sql = 'INSERT INTO movies ' +
-    '(code_version, name, imdb_url, length, import_date) ' +
-    'VALUES (?, ?, ?, ?, ?)';
-  var values = [movie.codes.version, movie.name, movie.imdb_url, movie.length, new Date()];
+    '(code_version, name, imdb_url, summary, length, import_date) ' +
+    'VALUES (?, ?, ?, ?, ?, ?)';
+  var values = [
+    movie.codes.version,
+    movie.name,
+    movie.imdb_url,
+    movie.summary,
+    movie.length,
+    new Date()
+  ];
+
   client.query(sql, values, function(err, info) {
     if (err) {
       return callback(err, null);
@@ -182,14 +190,47 @@ function insertMovie(movie, fingerprint, callback) {
 }
 
 function updateMovie(id, movie, callback) {
-  var sql = 'UPDATE movies SET name=?, imdb_url=?, length=? WHERE id=?';
-  var values = [movie.name, movie.imdb_url, movie.length, id];
+  var sql = 'UPDATE movies SET name=?, imdb_url=?, summary=?, length=? WHERE id=?';
+  var values = [movie.name, movie.imdb_url, movie.summary, movie.length, id];
   client.query(sql, values, function(err, info) {
     if (err) {
       return callback(err, null);
     }
 
-    insertMetadata(id, movie, callback);
+    deleteMetadata(id, function(err) {
+      insertMetadata(id, movie, callback);
+    });
+  });
+}
+
+function deleteMetadata(id, callback) {
+  var sql = 'DELETE FROM plot_events WHERE movie = ?';
+  client.query(sql, [id], function(err, info) {
+    if (err) {
+      log.error('Could not delete plot events of movie_id = ' + id);
+    }
+  });
+
+  var sql = 'DELETE FROM role_events WHERE movie = ?';
+  client.query(sql, [id], function(err, info) {
+    if (err) {
+      callback(err);
+    }
+
+    var sql = 'DELETE FROM roles WHERE id NOT IN (SELECT role FROM role_events)';
+    client.query(sql, [], function(err, info) {
+      if (err) {
+        callback(err);
+      }
+
+      var sql = 'DELETE FROM actors WHERE id NOT IN (SELECT actor FROM roles)';
+      client.query(sql, [], function(err, info) {
+        if (err) {
+          callback(err);
+        }
+        callback(null);
+      });
+    });
   });
 }
 
