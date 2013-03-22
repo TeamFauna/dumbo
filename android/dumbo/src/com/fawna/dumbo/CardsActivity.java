@@ -30,6 +30,8 @@ public class CardsActivity extends ListActivity {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.cardsview);
 
+    Log.d("Fingerprinter", "IN CARDSACTIVITY");
+
     timer = new Timer();
 
     if (movieInfo == null) {
@@ -116,8 +118,10 @@ public class CardsActivity extends ListActivity {
   private View generateActorCard(final String name, final String photoUrl, final String imdbUrl) {
     View actor = getLayoutInflater().inflate(R.layout.actor_card, null);
 
-    TextView nameView = (TextView) actor.findViewById(R.id.actor_name);
+    TextView nameView = (TextView)actor.findViewById(R.id.actor_name);
     nameView.setText(name);
+    setTypeface(nameView, "fonts/avenir_heavy.otf");
+    setTypeface((TextView)actor.findViewById(R.id.actor_description_header), "fonts/avenir_heavy.otf");
 
     Button imdbView = (Button) actor.findViewById(R.id.actor_imdb);
       if (imdbUrl != null) {
@@ -144,7 +148,9 @@ public class CardsActivity extends ListActivity {
     TextView nameView = (TextView) plotView.findViewById(R.id.episode_name);
     nameView.setText(name) ;
     if (!showEpDescription) {
-       ((TextView) plotView.findViewById(R.id.ep_description_header)).setText(name);
+       TextView descHeader = (TextView) plotView.findViewById(R.id.ep_description_header);
+       descHeader.setText(name);
+       setTypeface(descHeader, "fonts/avenir_heavy.otf");
        nameView.setVisibility(View.GONE);
     }
 
@@ -171,9 +177,11 @@ public class CardsActivity extends ListActivity {
     if (isHIMYM) {
       TextView totalTime = (TextView) statusBar.findViewById(R.id.total_time);
       totalTime.setText("of 21:03");
+      setTypeface(totalTime, "fonts/avenir_light.otf");
 
       TextView episode = (TextView) statusBar.findViewById(R.id.episode);
       episode.setText("Se. 6 Ep. 10");
+      setTypeface(episode, "fonts/avenir_light.otf");
     }
   }
 
@@ -194,14 +202,17 @@ public class CardsActivity extends ListActivity {
       title.setText("How I Met Your Mother");
     }
 
-    TextView tv = (TextView) headerView.findViewById(R.id.show_title);
-    Typeface tf = Typeface.createFromAsset(getAssets(), "fonts/avenir_next.ttc");
-    tv.setTypeface(tf);
+    setTypeface((TextView)headerView.findViewById(R.id.show_title), "fonts/avenir_next.ttc");
 
     Display display = getWindowManager().getDefaultDisplay();
     ImageView cover = (ImageView)headerView.findViewById(R.id.show_cover);
     scaleImageToFitWidth(cover, display.getWidth());
     return headerView;
+  }
+
+  private void setTypeface(TextView tv, String face) {
+    Typeface tf = Typeface.createFromAsset(getAssets(), face);
+    tv.setTypeface(tf);
   }
 
   public class CardsAdapter implements ListAdapter {
@@ -216,7 +227,8 @@ public class CardsActivity extends ListActivity {
       statusBar = getLayoutInflater().inflate(R.layout.status_bar, null);
       populateStatusBar(statusBar);
 
-      scheduleClock((TextView) statusBar.findViewById(R.id.current_time), System.currentTimeMillis() - movieInfo.time * 1000);
+      scheduleClock((TextView)statusBar.findViewById(R.id.current_time), System.currentTimeMillis() - movieInfo.time * 1000);
+      setTypeface((TextView)statusBar.findViewById(R.id.current_time), "fonts/avenir_heavy.otf");
 
       cards = new ArrayList<View>();
       seenActors = new HashSet<String>();

@@ -14,6 +14,8 @@ exports.getMovie = getMovie;
 exports.getMovies = getMovies;
 exports.insertMovie = insertMovie;
 exports.updateMovie = updateMovie;
+exports.addComment = addComment;
+exports.nukeComments = nukeComments;
 exports.disconnect = disconnect;
                 
 
@@ -148,12 +150,28 @@ function getEvents(movie_id, movie, callback) {
         });
       }
 
-      events.sort(function(a, b) {
-        return a.time_stamp - b.time_stamp;
-      });
+      var sql = 'SELECT comment, time_stamp FROM comments WHERE movie = ?';
+      client.query(sql, [movie_id], function(err, comments) {
+        if (err) {
+          return callback(err, null);
+        }
 
-      movie.events = events;
-      callback(null, movie);
+        for (var i = 0; i < comments.length; i++) {
+          var comment = comments[i];
+          events.push({
+            time_stamp: comment.time_stamp,
+            type: 'COMMENT',
+            text: comment.comment
+          });
+        }
+
+        events.sort(function(a, b) {
+          return a.time_stamp - b.time_stamp;
+        });
+
+        movie.events = events;
+        callback(null, movie);
+      });
     });
   });
 }
@@ -197,7 +215,40 @@ function updateMovie(id, movie, callback) {
       return callback(err, null);
     }
 
-    insertMetadata(id, movie, callback);
+    deleteMetadata(id, function(err) {
+      insertMetadata(id, movie, callback);
+    });
+  });
+}
+
+function deleteMetadata(id, callback) {
+  var sql = 'DELETE FROM plot_events WHERE movie = ?';
+  client.query(sql, [id], function(err, info) {
+    if (err) {
+      log.error('Could not delete plot events of movie_id = ' + id);
+    }
+  });
+
+  var sql = 'DELETE FROM role_events WHERE movie = ?';
+  client.query(sql, [id], function(err, info) {
+    if (err) {
+      callback(err);
+    }
+
+    var sql = 'DELETE FROM roles WHERE id NOT IN (SELECT role FROM role_events)';
+    client.query(sql, [], function(err, info) {
+      if (err) {
+        callback(err);
+      }
+
+      var sql = 'DELETE FROM actors WHERE id NOT IN (SELECT actor FROM roles)';
+      client.query(sql, [], function(err, info) {
+        if (err) {
+          callback(err);
+        }
+        callback(null);
+      });
+    });
   });
 }
 
@@ -386,6 +437,21 @@ function insertMultipleRows(sql, rows, callback) {
       callback(error, ids);
     }
   }
+}
+
+function addComment(comment, callback) {
+  var sql = 'INSERT INTO comments (comment, movie, time_stamp) VALUES (?, ?, ?)';
+  var values = [comment.text, comment.movie, comment.time_stamp];
+  client.query(sql, values, function(err, info) {
+    callback(err);
+  });
+}
+
+function nukeComments(callback) {
+  var sql = 'DELETE FROM comments';
+  client.query(sql, [], function(err) {
+    callback(err);
+  });
 }
 
 function disconnect(callback) {

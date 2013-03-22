@@ -10,6 +10,8 @@ exports.insert = insert;
 exports.list = list;
 exports.update = update;
 exports.get = get;
+exports.addComment = addComment;
+exports.nukeComments = nukeComments;
 
 /**
  * Querying for the closest matching movie.
@@ -54,7 +56,6 @@ function query(req, res) {
         result.match.metadata = movie;
 
         var duration = new Date() - req.start;
-        var success = !!result.success;
 
         log.debug('Completed lookup in ' + duration + 'ms. success=' +
           success + ', status=' + result.status);
@@ -143,6 +144,27 @@ function get(req, res) {
     var match = {};
     match.metadata = movie;
     server.respond(req, res, 200, { success: true, match: match });
+  });
+}
+
+function addComment(req, res) {
+  var comment = req.body;
+  database.addComment(comment, function(err) {
+    if (err) {
+      return server.respond(req, res, 500, 'Error adding comment: ' + err);
+    }
+
+    server.respond(req, res, 200, { success: true });
+  });
+}
+
+function nukeComments(req, res) {
+  database.nukeComments(function(err) {
+    if (err) {
+      return server.repsond(req, res, 500, 'Error nuking comments: ' + err);
+    }
+
+    server.respond(req, res, 200, { success: true });
   });
 }
 
