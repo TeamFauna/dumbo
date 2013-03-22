@@ -77,6 +77,7 @@ class LineParser:
     return (None, None)
 
   def parseNonText_(self, phrase):
+    phrase = re.sub('\s\s+', ' ', phrase)
     phrase = re.sub("<.+?>", "", phrase).strip()
     phrase = re.sub("\(.+?\)", "", phrase).strip()
     phrase = re.sub("\[.+?\]", "", phrase).strip()

@@ -21,7 +21,7 @@ class LineTimestamper:
     for (matchIndex, confidence, match) in self.findPotentialMatches_(phrase.lower()):
       if matchIndex > 0:
         result = self.getTimestampForIndex_(matchIndex)
-        if result < self.lastTimestamp:
+        if result <= self.lastTimestamp:
           results.append((result, confidence))
         else:
           self.lastTimestamp = result

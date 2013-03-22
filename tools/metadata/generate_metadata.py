@@ -52,21 +52,20 @@ def generateMetadata(path):
   def getCharacterIndex_(character):
     matchers = [exactlyMatches_, looselyMatches_]
     for matcher in matchers:
-      for (actorIndex, actor) in enumerate(actorInfo.keys()):
-        if matcher(actorInfo[actor]['role'], character):
-          return actorIndex
+      for (i, role) in enumerate(getRoles()):
+        if matcher(role['name'], character):
+          return i
     if DEBUG: print 'ERROR', 'character', character, 'not found on IMDB'
     return -1
 
   def exactlyMatches_(words1, words2):
-    words1 = stripPunct_(words1.lower())
-    words2 = stripPunct_(words2.lower())
-    if words1 is words2: return true
-    return matchWithSplit_(words1, words2, ' / ')
+    words1 = simplify_(words1)
+    words2 = simplify_(words2)
+    return words1.find(words2) is 0 or words2.find(words1) is 0
 
   def looselyMatches_(words1, words2):
-    words1 = stripPunct_(words1.lower())
-    words2 = stripPunct_(words2.lower())
+    words1 = simplify_(words1)
+    words2 = simplify_(words2)
     return matchWithSplit_(words1, words2, ' ')
 
   stopList = ['the', 'of', 'mr', 'ms', 'mrs', 'in', 'on']
@@ -76,8 +75,8 @@ def generateMetadata(path):
       if word in words and not (word in stopList): return True
     return False
 
-  def stripPunct_(word):
-    return re.sub("[().,\-']", "", word)
+  def simplify_(word):
+    return re.sub("[().,\-']", "", word.strip().lower())
 
   def getRoles():
     characters = []
