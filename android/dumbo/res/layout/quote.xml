@@ -33,7 +33,6 @@
                   android:layout_marginTop="7dp"
                   android:layout_marginBottom="3dp"
                   android:layout_toRightOf="@id/plot_point_icon"
-                  android:text="New Actor Appeared!"
                   android:textColor="#999999"
                   android:id="@+id/quote_actor"
                 />
@@ -44,9 +43,7 @@
                   android:id="@+id/quote_line"
                   android:layout_below="@id/quote_actor"
                   android:layout_toRightOf="@id/quote_photo"
-                  android:text="blah blah blah"
-                  android:textSize="9pt"
-                  android:maxLines="6"
+                  android:textSize="18dp"
                   android:ellipsize="end"/>
     </RelativeLayout>
 </FrameLayout>
