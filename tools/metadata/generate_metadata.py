@@ -33,7 +33,8 @@ def generateMetadata(path):
     actors = []
     for actor in actorInfo.keys():
       info = actorInfo[actor]
-      actors.append({ "name": actor, "imdb_url": info['actorURL'], "picture_url": info['picURL'] })
+      actors.append({ "name": actor, "imdb_url": info['actorURL'],
+                      "picture_url": info['picURL'], 'bio': info['bio'] })
     return actors
 
   def getRoleEvents():
