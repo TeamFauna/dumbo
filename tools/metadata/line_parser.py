@@ -5,6 +5,7 @@ Given a transcript file, iterates through the first line each character said.
 import re
 
 class LineParser:
+
   def __init__(self, filePath, type):
     self.transcript = open(filePath, 'r')
     self.characterLines = {}
@@ -36,7 +37,7 @@ class LineParser:
     return (actor, phrase)
 
   def parseLine2_(self, line):
-    if len(line) is 0:
+    if len(line) is 0 or line[0] is '[':
       return (None, None)
     colonIndex = line.find(':')
     if colonIndex < 0:
@@ -50,6 +51,7 @@ class LineParser:
   def parseNonText_(self, phrase):
     phrase = re.sub("<.+?>", "", phrase).strip()
     phrase = re.sub("\(.+?\)", "", phrase).strip()
+    phrase = re.sub("\[.+?\]", "", phrase).strip()
     if phrase.find('>>') > -1:
       phrase = re.sub(">>.*", "", phrase).strip()[:-2]
     return phrase

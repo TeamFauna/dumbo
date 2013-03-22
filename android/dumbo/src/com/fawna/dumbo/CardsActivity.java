@@ -171,7 +171,7 @@ public class CardsActivity extends ListActivity {
       @Override
       public void onClick(View v) {
         Intent openImdb = new Intent(Intent.ACTION_VIEW);
-        openImdb.setData(Uri.parse(isHIMYM ? "http://www.imdb.com/title/tt1777828/" : "http://www.imdb.com/title/tt0120737/"));
+        openImdb.setData(Uri.parse(isHIMYM ? "http://www.imdb.com/title/tt1777828/" : "http://www.imdb.com/title/tt0584441/"));
         startActivity(openImdb);
       }
     });
