@@ -149,7 +149,7 @@ public class ShowPickerActivity extends Activity {
 
   // TODO Will use me
   public void didFindMatchForCode() {
-    Intent intent = new Intent(this, CardsFragment.class);
+    Intent intent = new Intent(this, MovieViewActivity.class);
     startActivity(intent);
   }
 
