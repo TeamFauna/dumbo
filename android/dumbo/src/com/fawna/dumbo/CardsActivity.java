@@ -80,8 +80,12 @@ public class CardsActivity extends ListActivity {
 
   public void onNewCard(final String message) {
     ListView list = getListView();
-    Toast.makeText(this, message, 3000).show();
-
+    if (list.getLastVisiblePosition() >= getListAdapter().getCount() - 1) {
+      //list.smoothScrollToPosition(getListAdapter().getCount() - 1);
+      list.smoothScrollBy(900, 1000);
+    } else if (getListAdapter().getCount() > 1) {
+      Toast.makeText(this, message, 3000).show();
+    }
   }
 
   private void scheduleClock(final TextView view, final long time) {
@@ -111,11 +115,16 @@ public class CardsActivity extends ListActivity {
     image.getLayoutParams().height = newHeight;
   }
 
-  private View generateActorCard(final String name, final String photoUrl, final String imdbUrl) {
+  private View generateActorCard(final String name, final String bio, final String photoUrl, final String imdbUrl) {
     View actor = getLayoutInflater().inflate(R.layout.actor_card, null);
 
-    TextView nameView = (TextView) actor.findViewById(R.id.actor_name);
+    TextView nameView = (TextView)actor.findViewById(R.id.actor_name);
     nameView.setText(name);
+    setTypeface(nameView, "fonts/avenir_heavy.otf");
+    setTypeface((TextView)actor.findViewById(R.id.actor_description_header), "fonts/avenir_heavy.otf");
+
+    TextView actorBioView = (TextView) actor.findViewById(R.id.actor_bio);
+    actorBioView.setText(bio);
 
     Button imdbView = (Button) actor.findViewById(R.id.actor_imdb);
       if (imdbUrl != null) {
@@ -142,7 +151,9 @@ public class CardsActivity extends ListActivity {
     TextView nameView = (TextView) plotView.findViewById(R.id.episode_name);
     nameView.setText(name) ;
     if (!showEpDescription) {
-       ((TextView) plotView.findViewById(R.id.ep_description_header)).setText(name);
+       TextView descHeader = (TextView) plotView.findViewById(R.id.ep_description_header);
+       descHeader.setText(name);
+       setTypeface(descHeader, "fonts/avenir_heavy.otf");
        nameView.setVisibility(View.GONE);
     }
 
@@ -168,10 +179,12 @@ public class CardsActivity extends ListActivity {
     // set the cover photo to himym if necessary
     if (isHIMYM) {
       TextView totalTime = (TextView) statusBar.findViewById(R.id.total_time);
-      totalTime.setText("of 22:45");
+      totalTime.setText("of 21:03");
+      setTypeface(totalTime, "fonts/avenir_light.otf");
 
       TextView episode = (TextView) statusBar.findViewById(R.id.episode);
       episode.setText("Se. 6 Ep. 10");
+      setTypeface(episode, "fonts/avenir_light.otf");
     }
   }
 
@@ -192,9 +205,7 @@ public class CardsActivity extends ListActivity {
       title.setText("How I Met Your Mother");
     }
 
-    TextView tv = (TextView) headerView.findViewById(R.id.show_title);
-    Typeface tf = Typeface.createFromAsset(getAssets(), "fonts/avenir_next.ttc");
-    tv.setTypeface(tf);
+    setTypeface((TextView)headerView.findViewById(R.id.show_title), "fonts/avenir_next.ttc");
 
     Display display = getWindowManager().getDefaultDisplay();
     ImageView cover = (ImageView)headerView.findViewById(R.id.show_cover);
@@ -202,11 +213,17 @@ public class CardsActivity extends ListActivity {
     return headerView;
   }
 
+  private void setTypeface(TextView tv, String face) {
+    Typeface tf = Typeface.createFromAsset(getAssets(), face);
+    tv.setTypeface(tf);
+  }
+
   public class CardsAdapter implements ListAdapter {
 
     final private List<View> cards;
     private View statusBar;
-    final static int EXTRA_VIEWS = 2;
+    private View summary;
+    final static int EXTRA_VIEWS = 3;
     final HashSet<String> seenActors;
     DataSetObserver list;
 
@@ -214,7 +231,11 @@ public class CardsActivity extends ListActivity {
       statusBar = getLayoutInflater().inflate(R.layout.status_bar, null);
       populateStatusBar(statusBar);
 
-      scheduleClock((TextView) statusBar.findViewById(R.id.current_time), System.currentTimeMillis() - movieInfo.time * 1000);
+      summary = generatePlotCard(movieInfo.name, movieInfo.summary, true);
+
+
+      scheduleClock((TextView)statusBar.findViewById(R.id.current_time), System.currentTimeMillis() - movieInfo.time * 1000);
+      setTypeface((TextView)statusBar.findViewById(R.id.current_time), "fonts/avenir_heavy.otf");
 
       cards = new ArrayList<View>();
       seenActors = new HashSet<String>();
@@ -232,10 +253,8 @@ public class CardsActivity extends ListActivity {
     public void addMovieData() {
       for (MovieEvent event: movieInfo.events) {
         if (event.type.equals(MovieEvent.TYPE_PLOT)) {
-          Log.d("CardsrCool", "Found plot event at: " + event.time);
           AddPlotEvent addPlotEvent = new AddPlotEvent(event, cards, list);
           long fireTime = (event.time - movieInfo.time) * 1000;
-          Log.d("CardsrCool", "Firing plot event at: " + fireTime);
           timer.schedule(addPlotEvent,  Math.max(0, fireTime));
         } else if (event.type.equals(MovieEvent.TYPE_ACTOR)
             && !seenActors.contains(event.actor_name)
@@ -298,6 +317,8 @@ public class CardsActivity extends ListActivity {
           padding.setBackgroundColor(Color.argb(255, 196, 196, 196));
           padding.setHeight(30);
           return padding;
+      }  else if (position == 2) {
+        return summary;
       }
       return cards.get(position - EXTRA_VIEWS);
     }
@@ -322,6 +343,7 @@ public class CardsActivity extends ListActivity {
     final MovieEvent event;
     final List<View> cards;
     final DataSetObserver observer;
+    final Random choose = new Random();
 
     public AddPlotEvent(MovieEvent event, final List<View> cards, final DataSetObserver observer) {
       this.event = event;
@@ -335,8 +357,12 @@ public class CardsActivity extends ListActivity {
       runOnUiThread(new Runnable() {
         @Override
         public void run() {
-        cards.add(generatePlotCard("Did you know?", event.text, false));
+        String[] funnyHeaders = {"Did you know?", "Fun fact", "Trivia Time", "Were you aware?", "Check this out",
+            "Knowledge bomb!", "Impress your friends", "Here's a trivia gem", "A wild factoid appeared!"};
+        int choice = choose.nextInt(funnyHeaders.length);
+        cards.add(generatePlotCard(funnyHeaders[choice], event.text, false));
         observer.onChanged();
+        onNewCard("New triva appeared!");
         }
       });
     }
@@ -359,8 +385,9 @@ public class CardsActivity extends ListActivity {
       runOnUiThread(new Runnable() {
         @Override
         public void run() {
-          cards.add(generateActorCard(event.actor_name, event.actor_picture, event.actor_imdb));
+          cards.add(generateActorCard(event.actor_name, event.actor_bio, event.actor_picture, event.actor_imdb));
           observer.onChanged();
+          onNewCard(event.actor_name + " appeared!");
         }
       });
     }

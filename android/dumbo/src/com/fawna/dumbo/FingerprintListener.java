@@ -26,7 +26,7 @@ public class FingerprintListener implements AudioFingerprinterListener
   boolean recording, resolved, found;
   Fingerprinter fingerprinter;
   FingerprintShowActivity act;
-  boolean DEBUG = false;
+  boolean DEBUG = true;
 
   public FingerprintListener(FingerprintShowActivity acti) {
     act = acti;

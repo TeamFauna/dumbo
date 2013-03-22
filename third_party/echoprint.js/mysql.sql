@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS `actors` (
   `name` varchar(255) DEFAULT NULL,
   `imdb_url` varchar(255) DEFAULT NULL,
   `picture_url` varchar(255) DEFAULT NULL,
+  `bio` text DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) DEFAULT CHARSET=utf8;
 
@@ -58,6 +59,16 @@ CREATE TABLE IF NOT EXISTS `plot_events` (
   `time_stamp` int NOT NULL,
   `movie` int NOT NULL,
   `plot` text NOT NULL,
+  PRIMARY KEY (`id`),
+  INDEX (`movie`, `time_stamp`),
+  FOREIGN KEY (`movie`) REFERENCES `movies`(`id`)
+) DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `comments` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `time_stamp` int NOT NULL,
+  `movie` int NOT NULL,
+  `comment` text NOT NULL,
   PRIMARY KEY (`id`),
   INDEX (`movie`, `time_stamp`),
   FOREIGN KEY (`movie`) REFERENCES `movies`(`id`)

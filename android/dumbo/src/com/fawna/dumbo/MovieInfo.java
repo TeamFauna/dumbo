@@ -14,7 +14,7 @@ public class MovieInfo
     try {
       if (resp.has("offset")) { 
         JSONObject offset = resp.getJSONObject("offset");
-        time = (int)((offset.getDouble("time") + 30));
+        time = (int)((offset.getDouble("time") + 33));
       }
       else { 
         time = 300; //default for debugging
@@ -23,7 +23,7 @@ public class MovieInfo
       JSONObject metadata = resp.getJSONObject("metadata");
       name = metadata.getString("name");
       imdb = metadata.getString("imdb_url");
-      summary = "TROROROROROROROROROROL";//metadata.getString("summary");
+      summary = metadata.getString("summary");
 
       //TODO parse the roles
 

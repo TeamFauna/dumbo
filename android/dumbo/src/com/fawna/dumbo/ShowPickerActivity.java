@@ -35,6 +35,8 @@ public class ShowPickerActivity extends Activity {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.show_picker);
 
+
+
     final EditText minuteBox = (EditText) findViewById(R.id.set_time);
     minuteBox.setInputType(InputType.TYPE_CLASS_NUMBER);
 
