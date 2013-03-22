@@ -13,6 +13,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.*;
@@ -24,6 +25,14 @@ public class TranscriptFragment extends ListFragment {
   private Handler handler;
   private Timer timer;
 
+
+  @Override
+  public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    super.onCreateView(inflater, container, savedInstanceState);
+    return inflater.inflate(R.layout.cardsview, container, false);
+  }
+
+  @Override
   public void onActivityCreated(Bundle savedInstancestate) {
     super.onActivityCreated(savedInstancestate);
     handler = new Handler();
@@ -34,7 +43,55 @@ public class TranscriptFragment extends ListFragment {
     getListView().setBackgroundColor(Color.rgb(196, 196, 196));
     getListView().setDividerHeight(0);
     getListView().setDivider(null);
-    getListView().setPadding(0, 30, 0, 0);
+
+    populateStatusBar(getView().findViewById(R.id.fixed_header));
+    scheduleClock((TextView) getView().findViewById(R.id.current_time), System.currentTimeMillis() - CardsFragment.movieInfo.time * 1000);
+    getView().findViewById(R.id.status_drop_shadow).setVisibility(View.VISIBLE);
+
+  }
+
+  private void scheduleClock(final TextView view, final long time) {
+    timer.schedule(new TimerTask() {
+      @Override
+      public void run() {
+        handler.post(new Runnable() {
+          @Override
+          public void run() {
+            long current = (System.currentTimeMillis() - time) / 1000;
+            String time = "" + String.format("%d", current / 60) + ":" + String.format("%02d", current % 60);
+            view.setText(time);
+          }
+        });
+      }
+    }, 1000, 1000);
+
+  }
+
+
+  private void populateStatusBar(final View statusBar) {
+    final boolean isHIMYM = CardsFragment.movieInfo.imdb.contains("tt1777828");
+
+    // create the imdb button handler
+    ImageButton imdbButton = (ImageButton) statusBar.findViewById(R.id.imdb_button);
+    imdbButton.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        Intent openImdb = new Intent(Intent.ACTION_VIEW);
+        openImdb.setData(Uri.parse(isHIMYM ? "http://www.imdb.com/title/tt1777828/" : "http://www.imdb.com/title/tt0120737/"));
+        startActivity(openImdb);
+      }
+    });
+
+    // set the cover photo to himym if necessary
+    if (isHIMYM) {
+      TextView totalTime = (TextView) statusBar.findViewById(R.id.total_time);
+      totalTime.setText("of 21:03");
+      setTypeface(totalTime, "fonts/avenir_light.otf");
+
+      TextView episode = (TextView) statusBar.findViewById(R.id.episode);
+      episode.setText("Se. 6 Ep. 10");
+      setTypeface(episode, "fonts/avenir_light.otf");
+    }
   }
 
   private void onNewQuote() {
