@@ -157,7 +157,11 @@ public class ShowPickerActivity extends Activity {
     final EditText minuteBox = (EditText) findViewById(R.id.set_time);
     minuteBox.setInputType(InputType.TYPE_CLASS_NUMBER);
     Log.d("Fingerprinter", minuteBox.getText().toString());
+    try {
     return Integer.parseInt(minuteBox.getText().toString());
+    } catch (NumberFormatException ex) {
+      return 0;
+    }
   }
 
   private static String convertStreamToString(InputStream is) 

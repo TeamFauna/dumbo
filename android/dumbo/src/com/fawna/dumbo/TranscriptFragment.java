@@ -170,4 +170,11 @@ public class TranscriptFragment extends ListFragment {
     Typeface tf = Typeface.createFromAsset(getActivity().getAssets(), face);
     tv.setTypeface(tf);
   }
+
+  @Override
+  public void onDestroy() {
+    super.onDestroy();
+    timer.cancel();
+    timer.purge();
+  }
 }
