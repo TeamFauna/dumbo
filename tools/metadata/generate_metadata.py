@@ -88,7 +88,7 @@ def generateMetadata(path):
 
   def printJson():
     # this will crash if the string contains any non-ascii characters
-    json.dumps({
+    print json.dumps({
         "imdb_url": manual.url,
         "name": manual.name,
         "summary": manual.summary,
