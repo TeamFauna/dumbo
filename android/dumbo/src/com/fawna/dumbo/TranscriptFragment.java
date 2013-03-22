@@ -189,7 +189,7 @@ public class TranscriptFragment extends ListFragment {
           return padding;
       }
       View v = lines.get(position - 1);
-      if (position == lines.size() - 1) {
+      if (position == lines.size()) {
         Animation animation = AnimationUtils.loadAnimation(getActivity(), R.anim.fadein);
         v.startAnimation(animation);
       }
