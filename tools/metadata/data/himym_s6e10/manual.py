@@ -17,21 +17,21 @@ trivia = [
     'trivia': """The method by which the curse of the 'Blitz' is passed from one person to another (a trail of mist going to and from the mouth) is a visual in-joke to the Buffy episode Buffy the Vampire Slayer: Hush were people magically lose their voices in an identical manner."""
   }, {
     'line': 'But I was on that island',
-    'trivia': """When Steve "The Blitz" Henry describes being cursed by being the Blitz, he compares it to "being stuck on an island for ages." Jorge Garcia is most famous for his role on Lost."""
+    'trivia': "When Steve \"The Blitz\" Henry describes being cursed by being the Blitz, he compares it to \"being stuck on an island for ages.\" Jorge Garcia is most famous for his role on Lost."
   }, {
-    'line': """My Blitzy lits""",
-    'trivia': """Barney and Marshall parody a duet to the tune of the Scottish folk song "My Bonnie Lies Over the Ocean" ("My Blitzy lies over the ocean"), which the a cappella group Shag-a-rats sang in the Season 1 episode "Slutty Pumpkin"."
+    'line': "My Blitzy lits",
+    'trivia': "Barney and Marshall parody a duet to the tune of the Scottish folk song \"My Bonnie Lies Over the Ocean\" (\"My Blitzy lies over the ocean\"), which the a cappella group Shag-a-rats sang in the Season 1 episode \"Slutty Pumpkin\"."
   }, {
-    'line': """It's called a Turturkeykey!""",
-    'trivia': """Turturkeykey" is a play on the actual culinary creation Turducken."""
+    'line': "It's called a Turturkeykey!",
+    'trivia': "\"Turturkeykey\" is a play on the actual culinary creation Turducken."
   }, {
     'time': 178,
-    'trivia': """Zoey paints Robin's face like Paul Stanley from Kiss."""
+    'trivia': "Zoey paints Robin's face like Paul Stanley from Kiss."
   }, {
     'time': 1006,
-    'trivia': """Ted compares Zoey to the Evil Stepmother from the classic fairy tale Cinderella."""
+    'trivia': "Ted compares Zoey to the Evil Stepmother from the classic fairy tale Cinderella."
   }, {
-    'line': """you should dance""",
-    'trivia': """When the group chants "dance on the oven" to Robin, Barney instead chants "make out with Zoey"."""
+    'line': "you should dance",
+    'trivia': "When the group chants \"dance on the oven\" to Robin, Barney instead chants \"make out with Zoey\"."
   }
 ]

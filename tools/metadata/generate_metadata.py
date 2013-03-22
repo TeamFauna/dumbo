@@ -131,5 +131,5 @@ def generateMetadata(path):
 
 
 if __name__ == "__main__":
-  generateMetadata('futurama_s1e9')
-  #generateMetadata('himym_s6e10')
+  #generateMetadata('futurama_s1e9')
+  generateMetadata('himym_s6e10')
