@@ -50,17 +50,23 @@ def generateMetadata(path):
     return roleEvents
 
   def getCharacterIndex_(character):
-    for (actorIndex, actor) in enumerate(actorInfo.keys()):
-      if looselyMatches_(actorInfo[actor]['role'], character):
-        return actorIndex
+    matchers = [exactlyMatches_, looselyMatches_]
+    for matcher in matchers:
+      for (actorIndex, actor) in enumerate(actorInfo.keys()):
+        if matcher(actorInfo[actor]['role'], character):
+          return actorIndex
     if DEBUG: print 'ERROR', 'character', character, 'not found on IMDB'
     return -1
+
+  def exactlyMatches_(words1, words2):
+    words1 = stripPunct_(words1.lower())
+    words2 = stripPunct_(words2.lower())
+    if words1 is words2: return true
+    return matchWithSplit_(words1, words2, ' / ')
 
   def looselyMatches_(words1, words2):
     words1 = stripPunct_(words1.lower())
     words2 = stripPunct_(words2.lower())
-    if words1 is words2: return True
-    if matchWithSplit_(words1, words2, ' / '): return True
     return matchWithSplit_(words1, words2, ' ')
 
   stopList = ['the', 'of', 'mr', 'ms', 'mrs', 'in', 'on']
@@ -71,7 +77,7 @@ def generateMetadata(path):
     return False
 
   def stripPunct_(word):
-    return re.sub("[().,/\-']", "", word)
+    return re.sub("[().,\-']", "", word)
 
   def getRoles():
     characters = []
@@ -120,5 +126,5 @@ def generateMetadata(path):
 
 
 if __name__ == "__main__":
-  #generateMetadata('futurama_s1e9')
-  generateMetadata('himym_s6e10')
+  generateMetadata('futurama_s1e9')
+  #generateMetadata('himym_s6e10')
