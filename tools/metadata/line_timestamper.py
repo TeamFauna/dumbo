@@ -34,6 +34,8 @@ class LineTimestamper:
       if confidence > bestConfidence:
         bestConfidence = confidence
         bestResult = result
+    if bestResult is -1: return -1
+    if DEBUG: print 'WARNING', phrase, 'found at', bestResult, 'but', self.lastTimestamp
     return int(bestResult/1000)
 
   def findPotentialMatches_(self, fullPhrase):
