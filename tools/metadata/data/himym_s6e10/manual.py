@@ -1,4 +1,4 @@
-name = 'How I Met Your Mother: Blitzgiving (S06E10)'
+name = 'Blitzgiving'
 url = 'http://www.imdb.com/title/tt1777828/'
 summary = """When Ted leaves the bar early to prepare a Thanksgiving feast for his friends, the gang winds up partying all night with The Blitz, an old friend from college who has bad luck. As a result, Ted is forced to spend Thanksgiving with Zoey."""
 trivia = [{

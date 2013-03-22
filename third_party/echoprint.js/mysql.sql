@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS `actors` (
   `name` varchar(255) DEFAULT NULL,
   `imdb_url` varchar(255) DEFAULT NULL,
   `picture_url` varchar(255) DEFAULT NULL,
+  `bio` text DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) DEFAULT CHARSET=utf8;
 

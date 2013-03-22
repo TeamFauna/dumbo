@@ -76,6 +76,8 @@ public class Fingerprinter implements Runnable
   private short audioData[];
   private int bufferSize; 
   private int secondsToRecord;
+  private int finished;
+  private boolean success;
   private volatile boolean continuous;
 
   private AudioFingerprinterListener listener;
@@ -108,7 +110,7 @@ public class Fingerprinter implements Runnable
   public void fingerprint(int seconds)
   {
     // no continuous listening
-    this.fingerprint(seconds, false);
+    this.fingerprint(seconds, true);
   }
 
   /**
@@ -180,6 +182,8 @@ public class Fingerprinter implements Runnable
   public void run() 
   {
     this.isRunning = true;
+    this.finished = 0;
+    this.success = false;
     try 
     {     
       // create the audio buffer
@@ -188,9 +192,9 @@ public class Fingerprinter implements Runnable
 
       // and the actual buffer size for the audio to record
       // frequency * seconds to record.
-      bufferSize = Math.max(minBufferSize, this.FREQUENCY * this.secondsToRecord);
+      bufferSize = Math.max(minBufferSize, this.FREQUENCY * 10);//this.secondsToRecord);
 
-      audioData = new short[bufferSize];
+      audioData = new short[bufferSize*3];
 
       Log.d("Fingerprinter", "CREATE AUDIORECORD");
 
@@ -212,23 +216,42 @@ public class Fingerprinter implements Runnable
 
       mRecordInstance.startRecording();
       boolean firstRun = true;
+      int runs = 1;
+      int samplesIn = 0;
       do 
       {   
         try
         {
           willStartListeningPass();
 
+          Log.d("Fingerprinter","LOOP");
           long time = System.currentTimeMillis();
           // fill audio buffer with mic data.
-          int samplesIn = 0;
+          Log.d("Fingerprinter","BUffersize: " + bufferSize + " samplesIn: " + samplesIn);
           do 
           {         
-            samplesIn += mRecordInstance.read(audioData, samplesIn, bufferSize - samplesIn);
+            int req = bufferSize*3 - samplesIn;
+            //Log.d("Fingerprinter","BUffersize: " + bufferSize + " samplesIn: " + samplesIn + " req: " +req);
+            samplesIn += mRecordInstance.read(audioData, samplesIn, req);
 
             if(mRecordInstance.getRecordingState() == AudioRecord.RECORDSTATE_STOPPED)
               break;
+
+            if(samplesIn >= bufferSize * runs) {
+              Log.d("Fingerprinter","BUffersize: " + bufferSize + " samplesIn: " + samplesIn + " req: " +req);
+              runs += 1;
+              final int nSamples = samplesIn;
+              Thread newT = new Thread() {
+                @Override
+                public void run() { 
+                  runAllPass(nSamples); 
+                }
+              };
+              newT.start();
+
+            }
           } 
-          while (samplesIn < bufferSize);       
+          while (samplesIn < bufferSize*3);       
           Log.d("Fingerprinter", "Audio recorded: " + (System.currentTimeMillis() - time) + " millis");
 
           // see if the process was stopped.
@@ -236,16 +259,55 @@ public class Fingerprinter implements Runnable
             break;
 
           // create an echoprint codegen wrapper and get the code
-          time = System.currentTimeMillis();
+            firstRun = false;
+
+            didFinishListeningPass();
+
+            if (runs >= 3) {
+              stop();
+            }
+        }
+        catch(Exception e)
+        {
+          e.printStackTrace();
+          Log.e("Fingerprinter", e.getLocalizedMessage());
+
+          didFailWithException(e);
+        }
+      }
+      while (this.continuous);
+    } 
+    catch (Exception e) 
+    {
+      e.printStackTrace();
+      Log.e("Fingerprinter", e.getLocalizedMessage());
+
+      didFailWithException(e);
+    }
+
+    if(mRecordInstance != null)
+    {
+      mRecordInstance.stop();
+      mRecordInstance.release();
+      mRecordInstance = null;
+    }
+    this.isRunning = false;
+
+    while (finished < 3 && !this.success) { 
+    }
+    didFinishListening();
+  }
+
+  private void runAllPass(int samplesIn) { 
+    try {
           Codegen codegen = new Codegen();
             String code = codegen.generate(audioData, samplesIn);
-            Log.d("Fingerprinter", "Codegen created in: " + (System.currentTimeMillis() - time) + " millis");
 
             if(code.length() == 0)
             {
               // no code?
               // not enough audio data?
-              continue;
+              return;
             }
 
             didGenerateFingerprintCode(code);
@@ -253,7 +315,6 @@ public class Fingerprinter implements Runnable
             Log.d("Fingerprinter", "CODE CREATED: " + code);
 
             // fetch data from echonest
-            time = System.currentTimeMillis();
 
             JSONObject requestJson = new JSONObject();
             requestJson.put("version", "4.12");
@@ -289,7 +350,6 @@ public class Fingerprinter implements Runnable
                     // now you have the string representation of the HTML request
                     instream.close();
                 }
-            Log.d("Fingerprinter", "Results fetched in: " + (System.currentTimeMillis() - time) + " millis");
 
 
             Log.d("Fingerprinter", "RESULTS: " + result);
@@ -301,6 +361,8 @@ public class Fingerprinter implements Runnable
 
             if(jobj.getBoolean("success"))
             {
+              this.success = true;
+              stop();
               if(jobj.has("match"))
               {
                 didFindMatchForCode(jobj.getJSONObject("match"), code);
@@ -312,38 +374,11 @@ public class Fingerprinter implements Runnable
             {
               didFailWithException(new Exception("Unknown error"));
             }
-
-            firstRun = false;
-
-            didFinishListeningPass();
-        }
-        catch(Exception e)
-        {
-          e.printStackTrace();
-          Log.e("Fingerprinter", e.getLocalizedMessage());
-
-          didFailWithException(e);
-        }
-      }
-      while (this.continuous);
-    } 
-    catch (Exception e) 
-    {
-      e.printStackTrace();
-      Log.e("Fingerprinter", e.getLocalizedMessage());
-
-      didFailWithException(e);
     }
-
-    if(mRecordInstance != null)
-    {
-      mRecordInstance.stop();
-      mRecordInstance.release();
-      mRecordInstance = null;
+    catch (Exception e) {
+      throw new RuntimeException(e);
     }
-    this.isRunning = false;
-
-    didFinishListening();
+    this.finished+=1;
   }
 
   private static String convertStreamToString(InputStream is) 
