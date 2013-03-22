@@ -3,6 +3,7 @@ package com.fawna.dumbo;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import java.util.ArrayList;
+import android.util.Log;
 
 public class MovieInfo 
 {
@@ -14,6 +15,7 @@ public class MovieInfo
     try {
       if (resp.has("offset")) { 
         int flength = resp.getInt("flength");
+        Log.d("Fingerprinterflenght", "flength: " + flength);
         JSONObject offset = resp.getJSONObject("offset");
         time = (int)((offset.getDouble("time") + flength + 3));
       }

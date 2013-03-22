@@ -153,18 +153,19 @@ public class Fingerprinter implements Runnable
           for (short audioFormat : new short[] { AudioFormat.ENCODING_PCM_8BIT, AudioFormat.ENCODING_PCM_16BIT }) {
               for (short channelConfig : new short[] { AudioFormat.CHANNEL_IN_MONO, AudioFormat.CHANNEL_IN_STEREO }) {
                   try {
-                      Log.d("Fingerprinter", "Attempting rate " + rate + "Hz, bits: " + audioFormat + ", channel: "
+                      Log.d("FingerprinterTest", "Attempting rate " + rate + "Hz, bits: " + audioFormat + ", channel: "
                               + channelConfig);
                       int bufferSize = AudioRecord.getMinBufferSize(rate, channelConfig, audioFormat);
 
                       if (bufferSize != AudioRecord.ERROR_BAD_VALUE) {
                           // check if we can instantiate and have a success
-                          Log.d("Fingerprinter", "Good Values, rate: " + rate + "Hz, bits: " + audioFormat + ", channel: " + channelConfig + ", BufferSize: " + bufferSize); 
-                          AudioRecord recorder = new AudioRecord(MediaRecorder.AudioSource.DEFAULT, rate, channelConfig, audioFormat, bufferSize);
+                          Log.d("FingerprinterTestSuc", "Good Values, rate: " + rate + "Hz, bits: " + audioFormat + ", channel: " + channelConfig + ", BufferSize: " + bufferSize); 
+                          AudioRecord recorder = new AudioRecord(MediaRecorder.AudioSource.MIC, rate, channelConfig, audioFormat, bufferSize);
 
                           if (recorder.getState() == AudioRecord.STATE_INITIALIZED)
-                              return recorder;
-                          Log.d("Fingerprinter", "NO GOOD! :(");
+                              Log.d("FingerprinterTestSucGood", "GOOD!");
+                          else
+                              Log.d("FingerprinterTestSucBad", "NO GOOD! :(");
                       }
                   } catch (Exception e) {
                       Log.e("Fingerprinter", rate + "Exception, keep trying.",e);
@@ -200,11 +201,11 @@ public class Fingerprinter implements Runnable
 
       // start recorder
       mRecordInstance = new AudioRecord(
-                MediaRecorder.AudioSource.MIC,
+                MediaRecorder.AudioSource.DEFAULT,
                 FREQUENCY, CHANNEL, 
-                ENCODING, minBufferSize); //TODO: minbuffersize?
+                ENCODING, bufferSize*3);//minBufferSize); //TODO: minbuffersize?
 
-//      mRecordInstance = findAudioRecord();
+      //AudioRecord n = findAudioRecord();
       
       if (mRecordInstance == null) {
        Log.d("Fingerprinter", "NO RECORD INSTANCE!!!! LE SIGH");
@@ -240,11 +241,12 @@ public class Fingerprinter implements Runnable
             if(samplesIn >= bufferSize * runs) {
               Log.d("Fingerprinter","BUffersize: " + bufferSize + " samplesIn: " + samplesIn + " req: " +req);
               runs += 1;
+              final int fruns = runs - 1;
               final int nSamples = samplesIn;
               Thread newT = new Thread() {
                 @Override
                 public void run() { 
-                  runAllPass(nSamples); 
+                  runAllPass(nSamples, fruns); 
                 }
               };
               newT.start();
@@ -298,7 +300,7 @@ public class Fingerprinter implements Runnable
     didFinishListening();
   }
 
-  private void runAllPass(int samplesIn) { 
+  private void runAllPass(int samplesIn, int nums) { 
     try {
           Codegen codegen = new Codegen();
             String code = codegen.generate(audioData, samplesIn);
@@ -365,7 +367,9 @@ public class Fingerprinter implements Runnable
               stop();
               if(jobj.has("match"))
               {
-                didFindMatchForCode(jobj.getJSONObject("match"), code);
+                JSONObject match = jobj.getJSONObject("match");
+                match.put("flength", (nums) * 10);
+                didFindMatchForCode(match, code);
               }
               else
                 didNotFindMatchForCode(code);           
