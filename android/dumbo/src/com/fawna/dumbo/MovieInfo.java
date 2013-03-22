@@ -17,7 +17,7 @@ public class MovieInfo
         time = (int)((offset.getDouble("time") + 30));
       }
       else { 
-        time = 0;
+        time = 300; //default for debugging
       }
 
       JSONObject metadata = resp.getJSONObject("metadata");

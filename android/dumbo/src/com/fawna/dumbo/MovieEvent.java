@@ -1,5 +1,6 @@
 package com.fawna.dumbo;
 
+import android.util.Log;
 import org.json.JSONObject;
 
 public class MovieEvent 
@@ -14,16 +15,16 @@ public class MovieEvent
   public String actor_picture;
 
   public static String TYPE_PLOT = "PLOT";
-  public static String TYPE_ACTOR = "ACTOR";
+  public static String TYPE_ACTOR = "ROLE";
 
   
   public MovieEvent(JSONObject event) {
     try {
-      time = event.getInt("time_stamp");
+      time = event.getLong("time_stamp");
       type = event.getString("type");
       text = event.getString("text");
 
-      if (type == "ROLE") { 
+      if (type.equals("ROLE")) {
         JSONObject role = event.getJSONObject("role");
         role_name = role.getString("name");
         role_imdb = role.getString("imdb_url");
