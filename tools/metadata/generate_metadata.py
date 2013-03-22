@@ -114,7 +114,8 @@ def generateMetadata(path):
         "roles": getRoles(),
         "actors": getActors(),
         "role_events": getRoleEvents(),
-        "plot_events": getPlotEvents()
+        "plot_events": getPlotEvents(),
+        "id": manual.id
     }, ensure_ascii=False)
 
   manual = imp.load_source('manual', './data/' + path + '/manual.py')
@@ -131,5 +132,5 @@ def generateMetadata(path):
 
 
 if __name__ == "__main__":
-  #generateMetadata('futurama_s1e9')
-  generateMetadata('himym_s6e10')
+  generateMetadata('futurama_s1e9')
+  #generateMetadata('himym_s6e10')
