@@ -32,12 +32,19 @@ public class MovieViewActivity extends Activity {
 
     @Override
     public Fragment getItem(int i) {
-      return new CardsFragment();
+     switch (i) {
+       case 0:
+         return new CardsFragment();
+       case 1:
+       return new TranscriptFragment();
+       default:
+         return null;
+     }
     }
 
     @Override
     public int getCount() {
-      return 1;
+      return 2;
     }
   }
 }
