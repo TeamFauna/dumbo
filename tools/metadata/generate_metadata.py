@@ -56,13 +56,17 @@ def generateMetadata(path):
     if DEBUG: print 'ERROR', 'character', character, 'not found on IMDB'
     return -1
 
-  stopList = ['the', 'of', 'mr', 'ms', 'mrs', 'in', 'on']
   def looselyMatches_(words1, words2):
     words1 = stripPunct_(words1.lower())
     words2 = stripPunct_(words2.lower())
     if words1 is words2: return True
-    words = set(words1.split(' '))
-    for word in words2.split(' '):
+    if matchWithSplit_(words1, words2, ' / '): return True
+    return matchWithSplit_(words1, words2, ' ')
+
+  stopList = ['the', 'of', 'mr', 'ms', 'mrs', 'in', 'on']
+  def matchWithSplit_(words1, words2, split):
+    words = set(words1.split(split))
+    for word in words2.split(split):
       if word in words and not (word in stopList): return True
     return False
 
@@ -86,6 +90,10 @@ def generateMetadata(path):
       })
     return plotEvents
 
+  def addManualInfo():
+    for actorName in manual.additionalRoles.keys():
+      actorInfo[actorName]['role'] += ' / ' + manual.additionalRoles[actorName]
+
   def printJson():
     # this will crash if the string contains any non-ascii characters
     print json.dumps({
@@ -106,10 +114,11 @@ def generateMetadata(path):
   characterLines = LineParser(transcriptPath, path).getLines()
   lineTimestamper = LineTimestamper(subtitlePath)
   actorInfo = IMDBParser(imdbInfo).getActorInfo()
+  addManualInfo()
 
   printJson()
 
 
 if __name__ == "__main__":
-  generateMetadata('futurama_s1e9')
-  #generateMetadata('himym_s6e10')
+  #generateMetadata('futurama_s1e9')
+  generateMetadata('himym_s6e10')
