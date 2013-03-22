@@ -7,11 +7,11 @@
             android:id="@+id/show_cover"
             android:layout_width="fill_parent"
             android:layout_height="212dp"
-            android:src="@drawable/lotr_cover"
+            android:src="@drawable/futurama_cover"
             android:scaleType="fitXY"
             android:layout_marginBottom="15dp"/>
     <TextView android:id="@+id/show_title"
-              android:text="Lord of the Rings: The Fellowship of the Ring"
+              android:text="Futurama"
               style="@style/titlefont"
               android:layout_width="700dp"
               android:layout_centerHorizontal="true"
