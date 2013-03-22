@@ -80,8 +80,12 @@ public class CardsActivity extends ListActivity {
 
   public void onNewCard(final String message) {
     ListView list = getListView();
-    Toast.makeText(this, message, 3000).show();
-
+    if (list.getLastVisiblePosition() >= getListAdapter().getCount() - 1) {
+      //list.smoothScrollToPosition(getListAdapter().getCount() - 1);
+      list.smoothScrollBy(900, 1000);
+    } else if (getListAdapter().getCount() > 1) {
+      Toast.makeText(this, message, 3000).show();
+    }
   }
 
   private void scheduleClock(final TextView view, final long time) {
@@ -172,7 +176,7 @@ public class CardsActivity extends ListActivity {
     // set the cover photo to himym if necessary
     if (isHIMYM) {
       TextView totalTime = (TextView) statusBar.findViewById(R.id.total_time);
-      totalTime.setText("of 22:45");
+      totalTime.setText("of 21:03");
       setTypeface(totalTime, "fonts/avenir_light.otf");
 
       TextView episode = (TextView) statusBar.findViewById(R.id.episode);
@@ -347,6 +351,7 @@ public class CardsActivity extends ListActivity {
         public void run() {
         cards.add(generatePlotCard("Did you know?", event.text, false));
         observer.onChanged();
+        onNewCard("New card available");
         }
       });
     }
@@ -371,6 +376,7 @@ public class CardsActivity extends ListActivity {
         public void run() {
           cards.add(generateActorCard(event.actor_name, event.actor_picture, event.actor_imdb));
           observer.onChanged();
+          onNewCard("New card available");
         }
       });
     }

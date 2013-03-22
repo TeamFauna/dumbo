@@ -14,7 +14,7 @@ public class MovieInfo
     try {
       if (resp.has("offset")) { 
         JSONObject offset = resp.getJSONObject("offset");
-        time = (int)((offset.getDouble("time") + 30));
+        time = (int)((offset.getDouble("time") + 33));
       }
       else { 
         time = 300; //default for debugging
