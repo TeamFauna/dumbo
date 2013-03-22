@@ -26,6 +26,8 @@ public class FingerprintShowActivity extends Activity
 
     FingerprintListener fingerprinter;
 
+    Timer t = null;
+
   /**
    * Called when the activity is first created.
    */
@@ -49,7 +51,6 @@ public class FingerprintShowActivity extends Activity
               frameAnimation.start();
               img.setVisibility(View.VISIBLE);
 
-              Timer t = new Timer();
               final Date startDate = new Date();
               final long maxTime = 30000;
               t.schedule(new TimerTask() {
@@ -71,7 +72,7 @@ public class FingerprintShowActivity extends Activity
                       });
 
                       if (perc > 1) {
-                          this.cancel();
+                          t.cancel();
                       }
                   }
               }, 0, 10);
@@ -99,6 +100,11 @@ public class FingerprintShowActivity extends Activity
       ImageView bar = (ImageView)findViewById(R.id.clip_button);
       ClipDrawable barClip = (ClipDrawable)bar.getDrawable();
       barClip.setLevel(0);
+
+      if (t != null) {
+        t.cancel();
+      }
+      t = new Timer();
   }
 
   private void layoutCover() {
