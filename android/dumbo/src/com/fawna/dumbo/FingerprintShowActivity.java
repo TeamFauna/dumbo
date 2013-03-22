@@ -83,14 +83,12 @@ public class FingerprintShowActivity extends Activity
   {
     CardsActivity.movieInfo = table;
     Intent intent = new Intent(FingerprintShowActivity.this, CardsActivity.class);
-    intent.putExtra("imdb", table.imdb);
     startActivity(intent);
   }
 
   public void didNotFindMatchForCode()
   {
-    Intent intent = new Intent(FingerprintShowActivity.this, CardsActivity.class);
-    intent.putExtra("imdb", "http://www.imdb.com/title/tt1777828/");
+    Intent intent = new Intent(FingerprintShowActivity.this, ShowPickerActivity.class);
     startActivity(intent);
   }
 }
