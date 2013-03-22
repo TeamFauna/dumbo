@@ -83,6 +83,7 @@ public class FingerprintShowActivity extends Activity
   {
     CardsActivity.movieInfo = table;
     Intent intent = new Intent(FingerprintShowActivity.this, CardsActivity.class);
+    intent.putExtra("imdb", table.imdb);
     startActivity(intent);
   }
 
